@@ -3,7 +3,7 @@
 ## Tech Stack
 - Frontend: React 18 + TypeScript + Vite
 - Backend: Supabase (PostgreSQL, Auth, Storage, Edge Functions)
-- Email: Resend / Microsoft 365 (TBD)
+- Email: Microsoft 365 (SMTP via PWMA-owned mailbox)
 - Payments: PayPal
 
 ## Branch Strategy
@@ -15,4 +15,4 @@
 See docs/setup.md (to be created during Phase 1)
 
 ## Project Status
-Track progress on Monday.com: [link TBD]
+Track progress on Monday.com: https://pwma-company.monday.com/boards/5026559431
