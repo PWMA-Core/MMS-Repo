@@ -15,7 +15,7 @@ Membership Management System for the Private Wealth Management Association of Ho
 | Forms           | react-hook-form + zod                   |
 | State           | Zustand                                 |
 | Dates           | date-fns                                |
-| Email           | Resend (env-gated, interface abstracted) |
+| Email           | Microsoft 365 SMTP (env-gated, interface abstracted) |
 | Unit test       | Vitest + Testing Library                |
 | E2E test        | Playwright                              |
 | Lint / format   | ESLint flat config + Prettier           |
@@ -109,8 +109,10 @@ Copy `.env.example` to `.env.local` and fill in:
 
 - `VITE_SUPABASE_URL` — Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` — Supabase anon key
-- `VITE_EMAIL_PROVIDER` — email provider identifier (e.g. `resend`)
-- `RESEND_API_KEY` — Resend API key (server-side only)
+- `VITE_EMAIL_PROVIDER` — email provider identifier (default `m365`)
+- `M365_SMTP_USER` — Microsoft 365 mailbox user (server-side only)
+- `M365_SMTP_PASS` — Microsoft 365 mailbox password or app password (server-side only)
+- `M365_SMTP_FROM` — default `From` address for outbound email
 - `VITE_PUBLIC_URL` — public base URL (used in email links)
 - `VITE_ENV` — environment label (`development`, `staging`, `production`)
 
