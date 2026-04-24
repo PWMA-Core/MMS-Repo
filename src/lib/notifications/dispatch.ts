@@ -20,9 +20,8 @@ interface DispatchResult {
  * the record is self-contained even if the template registry changes later,
  * then inserts into the notifications table as status='queued'.
  *
- * The server-side worker (Supabase Edge Function, implemented by James) is
- * responsible for sending via M365 SMTP and updating status to 'sent' /
- * 'failed'. See docs/arch/phase-2-member-registration.md + james-handover.md.
+ * The server-side worker (Supabase Edge Function) is responsible for sending
+ * via M365 SMTP and updating status to 'sent' / 'failed'.
  *
  * Safe to call even when Supabase is offline: insert will error, we return
  * { ok: false, error } without throwing.

@@ -88,7 +88,7 @@ export function RenewalConfirmProfile({ profile, onConfirm, onEditProfile }: Pro
             </SelectContent>
           </Select>
           <p className="text-muted-foreground text-xs">
-            Per Rachel, members transition Employee ↔ Unemployed ↔ General public.
+            Members transition between Employee, Unemployed, and General public.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 pt-2">

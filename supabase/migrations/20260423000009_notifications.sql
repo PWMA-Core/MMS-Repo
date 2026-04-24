@@ -1,8 +1,8 @@
 -- Notification log. The SPA enqueues; a server-side worker (Supabase Edge
--- Function or James's backend) drains and sends via M365 SMTP. The row
--- records intent and delivery status. RLS lets admins read all and members
--- read their own; inserts are unrestricted to support anonymous flows
--- (email verify pre-approval).
+-- Function) drains and sends via M365 SMTP. The row records intent and
+-- delivery status. RLS lets admins read all and members read their own;
+-- inserts are unrestricted to support anonymous flows (email verify
+-- pre-approval).
 
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

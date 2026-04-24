@@ -38,7 +38,7 @@ CREATE INDEX idx_opt_records_source ON opt_records(source);
 COMMENT ON TABLE opt_records IS
     'Per-member OPT hour ledger. Auto-filled from events in Phase 4; admin override path supported via source=manual_admin.';
 COMMENT ON COLUMN opt_records.source IS
-    'event: from WF4 attendance+quiz pass. e_learning: 70% pass per Rachel image 39. manual_admin: Cherry override with reason. migrated: legacy import.';
+    'event: from WF4 attendance+quiz pass. e_learning: 70% pass per design spec. manual_admin: PWMA admin override with reason. migrated: legacy import.';
 
 -- Renewal submissions tie back to applications.application_kind = 'renewal'.
 -- This view surfaces the derived data for dashboards.

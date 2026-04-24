@@ -49,4 +49,4 @@ CREATE POLICY "firm_applications_admin_all" ON firm_applications
 COMMENT ON TABLE firm_applications IS
     'Intake records for prospective member firms. WF1 flow. Director sign-off chain captured in director_signoffs JSONB (order, name, signed_at, signature_ref).';
 COMMENT ON COLUMN firm_applications.director_signoffs IS
-    'Ordered list of director sign-off entries. Shape: [{order:int, name:str, signed_at:timestamp, signature_ref:str}]. Chain length assumed 3; to confirm with EXCo.';
+    'Ordered list of director sign-off entries. Shape: [{order:int, name:str, signed_at:timestamp, signature_ref:str}]. Chain length assumed 3, pending stakeholder confirmation.';
