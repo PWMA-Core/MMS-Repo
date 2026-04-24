@@ -1,6 +1,7 @@
 import { Outlet, isRouteErrorResponse, useRouteError, Link } from 'react-router-dom'
 import { useSessionSync } from '@/hooks/use-session'
 import { Toaster } from '@/components/ui/sonner'
+import { DevNav } from '@/components/debug/dev-nav'
 
 export function Root() {
   useSessionSync()
@@ -8,6 +9,7 @@ export function Root() {
     <>
       <Outlet />
       <Toaster richColors position="top-right" />
+      {import.meta.env.DEV && <DevNav />}
     </>
   )
 }
@@ -17,14 +19,14 @@ export function RootErrorBoundary() {
   const message = isRouteErrorResponse(error)
     ? `${error.status} ${error.statusText}`
     : error instanceof Error
-    ? error.message
-    : 'Unknown error'
+      ? error.message
+      : 'Unknown error'
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="max-w-md text-center">
         <h1 className="mb-2 text-2xl font-semibold">Something went wrong</h1>
-        <p className="mb-6 text-sm text-muted-foreground">{message}</p>
+        <p className="text-muted-foreground mb-6 text-sm">{message}</p>
         <Link to="/" className="text-sm underline underline-offset-4">
           Go home
         </Link>

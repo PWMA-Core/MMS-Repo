@@ -8,6 +8,7 @@ import { SideNav } from '@/components/layout/nav'
 const memberNavItems = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/profile', label: 'Profile' },
+  { to: '/renewal', label: 'Renewal' },
 ]
 
 export function MemberLayout() {
@@ -16,7 +17,7 @@ export function MemberLayout() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-screen items-center justify-center text-sm">
         Loading...
       </div>
     )
@@ -28,6 +29,10 @@ export function MemberLayout() {
 
   if (profileQuery.data?.role === 'pwma_admin') {
     return <Navigate to="/admin/dashboard" replace />
+  }
+
+  if (profileQuery.data?.role === 'member_firm_admin') {
+    return <Navigate to="/firm/dashboard" replace />
   }
 
   return (

@@ -4,6 +4,7 @@ import { Root, RootErrorBoundary } from '@/routes/root'
 import { PublicLayout } from '@/routes/_public/_layout'
 import { LandingPage } from '@/routes/_public/landing'
 import { AboutPage } from '@/routes/_public/about'
+import { ApplyFirmPage, ApplyFirmThanksPage } from '@/routes/_public/apply-firm'
 import { AuthLayout } from '@/routes/_auth/_layout'
 import { SignInPage } from '@/routes/_auth/sign-in'
 import { SignUpPage } from '@/routes/_auth/sign-up'
@@ -13,13 +14,17 @@ import { CallbackPage } from '@/routes/_auth/callback'
 import { MemberLayout } from '@/routes/_member/_layout'
 import { MemberDashboardPage } from '@/routes/_member/dashboard'
 import { MemberProfilePage } from '@/routes/_member/profile'
+import { MemberRenewalPage } from '@/routes/_member/renewal'
 import { RegisterIndividualPage } from '@/routes/_member/register/individual'
-import { RegisterFirmAdminPage } from '@/routes/_member/register/firm-admin'
 import { RegisterGuestPage } from '@/routes/_member/register/guest'
+import { FirmAdminLayout } from '@/routes/_firm/_layout'
+import { FirmAdminDashboardPage } from '@/routes/_firm/dashboard'
+import { FirmEmployeesPage } from '@/routes/_firm/employees'
 import { AdminLayout } from '@/routes/_admin/_layout'
 import { AdminDashboardPage } from '@/routes/_admin/dashboard'
 import { AdminApprovalsPage } from '@/routes/_admin/approvals'
 import { AdminProfileChangesPage } from '@/routes/_admin/profile-changes'
+import { AdminFirmApplicationsPage } from '@/routes/_admin/firm-applications'
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +36,8 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <LandingPage /> },
           { path: 'about', element: <AboutPage /> },
+          { path: 'apply-firm', element: <ApplyFirmPage /> },
+          { path: 'apply-firm/thanks', element: <ApplyFirmThanksPage /> },
         ],
       },
       {
@@ -42,7 +49,6 @@ export const router = createBrowserRouter([
           { path: 'reset-password', element: <ResetPasswordPage /> },
           { path: 'auth/callback', element: <CallbackPage /> },
           { path: 'register/individual', element: <RegisterIndividualPage /> },
-          { path: 'register/firm-admin', element: <RegisterFirmAdminPage /> },
           { path: 'register/guest', element: <RegisterGuestPage /> },
         ],
       },
@@ -51,6 +57,16 @@ export const router = createBrowserRouter([
         children: [
           { path: 'dashboard', element: <MemberDashboardPage /> },
           { path: 'profile', element: <MemberProfilePage /> },
+          { path: 'renewal', element: <MemberRenewalPage /> },
+        ],
+      },
+      {
+        path: 'firm',
+        element: <FirmAdminLayout />,
+        children: [
+          { index: true, element: <FirmAdminDashboardPage /> },
+          { path: 'dashboard', element: <FirmAdminDashboardPage /> },
+          { path: 'employees', element: <FirmEmployeesPage /> },
         ],
       },
       {
@@ -61,6 +77,7 @@ export const router = createBrowserRouter([
           { path: 'dashboard', element: <AdminDashboardPage /> },
           { path: 'approvals', element: <AdminApprovalsPage /> },
           { path: 'profile-changes', element: <AdminProfileChangesPage /> },
+          { path: 'firm-applications', element: <AdminFirmApplicationsPage /> },
         ],
       },
     ],

@@ -7,10 +7,10 @@ export function LandingPage() {
       <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
         PWMA Membership Management System
       </h1>
-      <p className="max-w-2xl text-muted-foreground">
-        Register for CPWP or CPWPA certification, manage your member profile,
-        and track applications. The unified portal for the Private Wealth
-        Management Association of Hong Kong.
+      <p className="text-muted-foreground max-w-2xl">
+        Register for CPWP or CPWPA certification, manage your member profile, and track
+        applications. The unified portal for the Private Wealth Management Association of
+        Hong Kong.
       </p>
       <div className="flex flex-wrap justify-center gap-3">
         <Button asChild size="lg">
@@ -18,6 +18,9 @@ export function LandingPage() {
         </Button>
         <Button asChild size="lg" variant="outline">
           <Link to="/sign-in">Sign in</Link>
+        </Button>
+        <Button asChild size="lg" variant="ghost">
+          <Link to="/apply-firm">Apply as a firm</Link>
         </Button>
       </div>
     </section>

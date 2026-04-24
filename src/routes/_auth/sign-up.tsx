@@ -1,5 +1,11 @@
 import { Link } from 'react-router-dom'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
 export function SignUpPage() {
@@ -17,12 +23,15 @@ export function SignUpPage() {
             <Link to="/register/individual">Individual member</Link>
           </Button>
           <Button asChild variant="outline">
-            <Link to="/register/firm-admin">Firm admin</Link>
-          </Button>
-          <Button asChild variant="outline">
             <Link to="/register/guest">Guest (events only)</Link>
           </Button>
-          <p className="pt-2 text-center text-sm text-muted-foreground">
+          <p className="text-muted-foreground pt-3 text-center text-sm">
+            Applying on behalf of a firm?{' '}
+            <Link to="/apply-firm" className="underline underline-offset-4">
+              Submit a firm application
+            </Link>
+          </p>
+          <p className="text-muted-foreground pt-1 text-center text-sm">
             Already a member?{' '}
             <Link to="/sign-in" className="underline underline-offset-4">
               Sign in

@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { useCurrentProfile } from '@/hooks/use-user'
 import { supabase } from '@/lib/supabase/client'
+import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
 import {
   CRITICAL_FIELDS,
   nonCriticalProfileSchema,
@@ -18,7 +19,13 @@ import { ACCOUNT_STATUS_LABELS } from '@/lib/constants/account-statuses'
 import { ROLE_LABELS } from '@/lib/constants/roles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -48,11 +55,11 @@ export function MemberProfilePage() {
   const { data: profile, isLoading } = useCurrentProfile()
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading profile...</p>
+    return <p className="text-muted-foreground text-sm">Loading profile...</p>
   }
   if (!profile) {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-muted-foreground text-sm">
         Profile not found. Your registration may still be provisioning.
       </p>
     )
@@ -62,7 +69,7 @@ export function MemberProfilePage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">My profile</h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Account {ACCOUNT_STATUS_LABELS[profile.account_status]} ·{' '}
           {ROLE_LABELS[profile.role]}
         </p>
@@ -79,16 +86,18 @@ export function MemberProfilePage() {
           {CRITICAL_FIELDS.map((field) => {
             const value =
               field === 'date_of_birth'
-                ? profile.date_of_birth ?? '—'
+                ? (profile.date_of_birth ?? '—')
                 : field === 'legal_name'
-                ? profile.legal_name
-                : field === 'hkid'
-                ? profile.hkid
-                : profile.email
+                  ? profile.legal_name
+                  : field === 'hkid'
+                    ? profile.hkid
+                    : profile.email
             return (
               <CriticalFieldRow
                 key={field}
                 profileId={profile.id}
+                profileEmail={profile.email}
+                profileName={profile.legal_name}
                 field={field}
                 currentValue={value ?? ''}
               />
@@ -104,10 +113,14 @@ export function MemberProfilePage() {
 
 function CriticalFieldRow({
   profileId,
+  profileEmail,
+  profileName,
   field,
   currentValue,
 }: {
   profileId: string
+  profileEmail: string
+  profileName: string
   field: CriticalField
   currentValue: string
 }) {
@@ -134,8 +147,18 @@ function CriticalFieldRow({
       })
       if (error) throw error
     },
-    onSuccess: () => {
+    onSuccess: (_data, submitted) => {
       toast.success('Change request submitted. PWMA will review.')
+      dispatchNotificationAsync({
+        to_email: profileEmail,
+        to_profile_id: profileId,
+        template_key: 'profile_change_submitted',
+        payload: {
+          legal_name: profileName,
+          field_name: submitted.field_name,
+          new_value: submitted.new_value,
+        },
+      })
       setOpen(false)
       form.reset()
       qc.invalidateQueries({ queryKey: ['profile'] })
@@ -148,10 +171,8 @@ function CriticalFieldRow({
   return (
     <div className="flex items-center justify-between gap-4">
       <div className="flex-1">
-        <p className="text-sm font-medium">
-          {CRITICAL_FIELD_LABELS[field]}
-        </p>
-        <p className="text-sm text-muted-foreground">{currentValue}</p>
+        <p className="text-sm font-medium">{CRITICAL_FIELD_LABELS[field]}</p>
+        <p className="text-muted-foreground text-sm">{currentValue}</p>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
@@ -163,8 +184,7 @@ function CriticalFieldRow({
           <DialogHeader>
             <DialogTitle>Request change: {CRITICAL_FIELD_LABELS[field]}</DialogTitle>
             <DialogDescription>
-              PWMA will review your request. You can keep using the system
-              while you wait.
+              PWMA will review your request. You can keep using the system while you wait.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -199,11 +219,7 @@ function CriticalFieldRow({
                 )}
               />
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={mutation.isPending}>
@@ -260,9 +276,7 @@ function NonCriticalFieldsForm({
     <Card>
       <CardHeader>
         <CardTitle>Contact details</CardTitle>
-        <CardDescription>
-          You can edit these directly.
-        </CardDescription>
+        <CardDescription>You can edit these directly.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
