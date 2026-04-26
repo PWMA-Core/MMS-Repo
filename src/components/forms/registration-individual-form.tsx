@@ -9,6 +9,10 @@ import {
   type RegisterIndividualInput,
 } from '@/lib/validators/registration'
 import { supabase } from '@/lib/supabase/client'
+import { mapAuthError } from '@/lib/auth/error-messages'
+import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
+import { useDemoAutofill } from '@/lib/debug/use-demo-autofill'
+import { DEMO_REGISTRATION_INDIVIDUAL } from '@/lib/debug/dummy-data'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -37,6 +41,7 @@ export function RegistrationIndividualForm() {
       confirm_password: '',
     },
   })
+  useDemoAutofill(form, DEMO_REGISTRATION_INDIVIDUAL)
 
   const mutation = useMutation({
     mutationFn: async (input: RegisterIndividualInput) => {
@@ -45,47 +50,40 @@ export function RegistrationIndividualForm() {
         password: input.password,
         options: {
           emailRedirectTo: `${import.meta.env.VITE_PUBLIC_URL ?? window.location.origin}/auth/callback`,
+          data: {
+            hkid: input.hkid,
+            legal_name: input.legal_name,
+            date_of_birth: input.date_of_birth,
+            phone: input.phone,
+            address: input.address || null,
+            role: 'individual_member',
+          },
         },
       })
       if (authError) throw authError
 
-      const { error: profileError } = await supabase.from('profiles').insert({
-        auth_user_id: auth.user?.id ?? null,
-        hkid: input.hkid,
-        email: input.email,
-        legal_name: input.legal_name,
-        date_of_birth: input.date_of_birth,
-        phone: input.phone,
-        address: input.address || null,
-        role: 'individual_member',
-        account_status: 'pending_email_verify',
-      })
-      if (profileError) throw profileError
-
       return auth
     },
-    onSuccess: () => {
+    onSuccess: (_data, input) => {
       toast.success('Account created. Check your email to verify.')
+      dispatchNotificationAsync({
+        to_email: input.email,
+        template_key: 'registration_received',
+        payload: {
+          legal_name: input.legal_name,
+          role: 'individual_member',
+        },
+      })
       navigate('/verify')
     },
     onError: (error: Error) => {
-      const msg = error.message.toLowerCase()
-      if (msg.includes('duplicate') && msg.includes('hkid')) {
-        toast.error('HKID already registered. Sign in or contact support.')
-      } else if (msg.includes('duplicate') && msg.includes('email')) {
-        toast.error('Email already registered. Sign in or reset password.')
-      } else {
-        toast.error(error.message || 'Registration failed')
-      }
+      toast.error(mapAuthError(error).message)
     },
   })
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-        className="space-y-4"
-      >
+      <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
         <FormField
           control={form.control}
           name="hkid"
@@ -96,8 +94,8 @@ export function RegistrationIndividualForm() {
                 <Input placeholder="A123456(3)" autoComplete="off" {...field} />
               </FormControl>
               <FormDescription>
-                Your HK Identity Card number including check digit. Cannot be
-                changed after registration without PWMA approval.
+                Your HK Identity Card number including check digit. Cannot be changed
+                after registration without PWMA approval.
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -202,11 +200,7 @@ export function RegistrationIndividualForm() {
           )}
         />
 
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={mutation.isPending}
-        >
+        <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {mutation.isPending ? 'Creating account...' : 'Create account'}
         </Button>
       </form>

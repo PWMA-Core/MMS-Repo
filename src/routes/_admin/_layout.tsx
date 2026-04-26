@@ -9,6 +9,7 @@ const adminNavItems = [
   { to: '/admin/dashboard', label: 'Dashboard' },
   { to: '/admin/approvals', label: 'Approvals' },
   { to: '/admin/profile-changes', label: 'Profile changes' },
+  { to: '/admin/firm-applications', label: 'Firm applications' },
 ]
 
 export function AdminLayout() {
@@ -17,7 +18,7 @@ export function AdminLayout() {
 
   if (status === 'loading' || profileQuery.isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="text-muted-foreground flex min-h-screen items-center justify-center text-sm">
         Loading...
       </div>
     )
