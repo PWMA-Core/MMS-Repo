@@ -137,3 +137,25 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# ---- Project additions ----
+
+# macOS / editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Vite / local overrides
+*.local
+!.env.example
+dist-ssr
+
+# Supabase CLI
+supabase/.temp
+supabase/.branches
+supabase/seed_data
+
+# Playwright
+playwright-report
+test-results

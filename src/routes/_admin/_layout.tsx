@@ -1,0 +1,46 @@
+import { Outlet, Navigate } from 'react-router-dom'
+import { useSessionStore } from '@/stores/session-store'
+import { useCurrentProfile } from '@/hooks/use-user'
+import { Header } from '@/components/layout/header'
+import { Footer } from '@/components/layout/footer'
+import { SideNav } from '@/components/layout/nav'
+
+const adminNavItems = [
+  { to: '/admin/dashboard', label: 'Dashboard' },
+  { to: '/admin/approvals', label: 'Approvals' },
+  { to: '/admin/profile-changes', label: 'Profile changes' },
+]
+
+export function AdminLayout() {
+  const status = useSessionStore((s) => s.status)
+  const profileQuery = useCurrentProfile()
+
+  if (status === 'loading' || profileQuery.isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+        Loading...
+      </div>
+    )
+  }
+
+  if (status === 'unauthenticated') {
+    return <Navigate to="/sign-in" replace />
+  }
+
+  if (profileQuery.data && profileQuery.data.role !== 'pwma_admin') {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Header />
+      <div className="grid flex-1 grid-cols-[220px_1fr]">
+        <SideNav items={adminNavItems} />
+        <main className="p-6">
+          <Outlet />
+        </main>
+      </div>
+      <Footer />
+    </div>
+  )
+}
