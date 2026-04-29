@@ -434,8 +434,14 @@ export function DevNav() {
         setActiveRole(step.role)
       }
     }
-    const wantFill = mode === 'fill' && step.autofill
-    const target = wantFill ? `${step.path}?demo=1` : step.path
+    // Autofill steps signal via ?demo=0|1 so useDemoAutofill can clear or
+    // fill in place. Non-autofill steps just navigate to the bare path.
+    let target: string
+    if (step.autofill) {
+      target = mode === 'fill' ? `${step.path}?demo=1` : `${step.path}?demo=0`
+    } else {
+      target = step.path
+    }
     // Defer navigate so the session state update commits before any layout
     // guard reads it.
     setTimeout(() => navigate(target), 0)

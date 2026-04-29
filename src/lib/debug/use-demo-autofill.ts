@@ -20,8 +20,15 @@ export function useDemoAutofill<TValues extends FieldValues>(
   const demoFlag = params.get('demo')
 
   useEffect(() => {
-    if (demoFlag !== '1') return
-    form.reset(values)
+    if (demoFlag === '1') {
+      form.reset(values)
+    } else if (demoFlag === '0') {
+      // Reverse: reset back to the form's original empty defaults.
+      // Used by Cmd+← to "un-fill" an autofill step.
+      form.reset()
+    } else {
+      return
+    }
     const next = new URLSearchParams(params)
     next.delete('demo')
     setParams(next, { replace: true })
