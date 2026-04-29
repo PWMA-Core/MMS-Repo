@@ -15,7 +15,12 @@ export type FriendlyAuthError = {
 }
 
 export function mapAuthError(error: unknown): FriendlyAuthError {
-  const raw = error instanceof Error ? error.message : String(error ?? '')
+  const raw =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'object' && error !== null && 'message' in error
+        ? String((error as { message: unknown }).message ?? '')
+        : String(error ?? '')
   const msg = raw.toLowerCase()
 
   if (msg.includes('email not confirmed')) {
