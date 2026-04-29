@@ -400,6 +400,31 @@ export function DevNav() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Sync activeStepIndex with the URL. If the user submits a form (or
+  // navigates manually) and the new path matches a step in the current
+  // active story, point activeStepIndex at it. Without this, Cmd+→ from
+  // a post-submit page would think we're still on the form step and only
+  // advance to the next step on the SECOND keypress.
+  //
+  // Computed inline (not in an effect) so state stays consistent within
+  // the same render — avoids the cascading-render lint warning.
+  const syncedStepIndex = (() => {
+    if (activeStoryId === null) return activeStepIndex
+    const story = STORIES.find((s) => s.id === activeStoryId)
+    if (!story) return activeStepIndex
+    const idx = story.steps.findIndex((s) => s.path === location.pathname)
+    return idx >= 0 ? idx : activeStepIndex
+  })()
+  if (syncedStepIndex !== activeStepIndex) {
+    // Schedule the state update to fire on the next tick rather than
+    // mid-render. setState during render is safe in React 18+ but we
+    // still defer to keep the dev-nav simple to reason about.
+    queueMicrotask(() => {
+      setActiveStepIndex(syncedStepIndex)
+      setActiveStepFilled(false)
+    })
+  }
+
   function handleRoleChange(role: Role | null) {
     if (role === null) {
       clearDemoSession()
