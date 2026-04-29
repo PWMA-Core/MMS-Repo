@@ -1,13 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase/client'
 import { useCurrentProfile } from '@/hooks/use-user'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import type { Database } from '@/types/database'
 
 type FirmMembership = Database['public']['Tables']['firm_memberships']['Row']
@@ -74,51 +68,85 @@ export function FirmAdminDashboardPage() {
     employees.data?.filter((r) => r.profile?.account_status === 'active').length ?? 0
 
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">{firm.data?.name ?? 'Firm dashboard'}</h1>
-        <p className="text-muted-foreground text-sm">
-          Consolidated view of your firm's PWMA memberships.
-        </p>
+    <>
+      <header className="mb-16 flex items-end justify-between">
+        <div>
+          <div className="label-small mb-4">Firm overview</div>
+          <h1 className="title-huge">{firm.data?.name ?? 'Firm'}</h1>
+        </div>
+        <div className="mb-2 flex gap-4">
+          <Link to="/firm/employees" className="nexus-pill-outline">
+            <i className="ph ph-users" aria-hidden="true" />
+            Employees
+          </Link>
+          <Link to="/profile" className="nexus-pill-primary">
+            <i className="ph ph-user text-lg" aria-hidden="true" />
+            My profile
+          </Link>
+        </div>
+      </header>
+
+      <div className="mb-20 grid grid-cols-12 gap-16">
+        <section className="col-span-7 flex flex-col">
+          <div className="mb-12 flex gap-16">
+            <div className="flex flex-col">
+              <span className="label-small mb-2">Total employees</span>
+              <span className="text-5xl font-light tracking-tight">
+                {employees.isLoading ? '—' : employeeCount}
+              </span>
+            </div>
+            <div className="flex flex-col">
+              <span className="label-small mb-2">Active accounts</span>
+              <span className="text-foreground/65 text-5xl font-light tracking-tight">
+                {employees.isLoading ? '—' : activeCount}
+              </span>
+            </div>
+          </div>
+
+          <div className="border-foreground flex h-[180px] w-full items-end border-b">
+            <div
+              className="prop-solid"
+              style={{
+                width: `${employeeCount === 0 ? 0 : (activeCount / employeeCount) * 100}%`,
+                height: '120px',
+              }}
+            />
+            <div className="prop-fine-vertical flex-grow" style={{ height: '60px' }} />
+          </div>
+          <div className="mt-4 flex w-full justify-between">
+            <span className="label-small">Coverage</span>
+            <span className="label-small">
+              {employeeCount === 0
+                ? '0%'
+                : `${Math.round((activeCount / employeeCount) * 100)}% active`}
+            </span>
+          </div>
+        </section>
+
+        <section className="col-span-5 flex flex-col justify-end">
+          <div className="label-small mb-6">Firm status</div>
+          {firm.isLoading ? (
+            <span className="text-foreground/65 text-sm">Loading...</span>
+          ) : firm.data ? (
+            <div className="space-y-4">
+              <div className="flex flex-col">
+                <span className="label-small mb-2">Tier</span>
+                <span className="text-3xl font-light capitalize">
+                  {firm.data.tier.replace('_', ' ')}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="label-small mb-2">Status</span>
+                <span className="text-foreground/65 text-3xl font-light capitalize">
+                  {firm.data.status}
+                </span>
+              </div>
+            </div>
+          ) : (
+            <span className="text-foreground/65 text-sm">No firm linked</span>
+          )}
+        </section>
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Employees</CardTitle>
-            <CardDescription>Linked to this firm</CardDescription>
-          </CardHeader>
-          <CardContent className="text-3xl font-semibold">
-            {employees.isLoading ? '—' : employeeCount}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Active accounts</CardTitle>
-            <CardDescription>Approved members</CardDescription>
-          </CardHeader>
-          <CardContent className="text-3xl font-semibold">
-            {employees.isLoading ? '—' : activeCount}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Firm status</CardTitle>
-            <CardDescription>Membership tier and status</CardDescription>
-          </CardHeader>
-          <CardContent className="text-sm">
-            {firm.isLoading ? (
-              '—'
-            ) : firm.data ? (
-              <>
-                <div className="capitalize">{firm.data.tier.replace('_', ' ')}</div>
-                <div className="text-muted-foreground capitalize">{firm.data.status}</div>
-              </>
-            ) : (
-              <span className="text-muted-foreground">No firm linked</span>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    </>
   )
 }

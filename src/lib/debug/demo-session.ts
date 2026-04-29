@@ -2,12 +2,13 @@
  * Demo session helper for the DevNav overlay.
  *
  * Sets a fake session + profile in the Zustand store so protected routes
- * render without hitting Supabase auth. Persists across refresh via
- * sessionStorage. All writes are tagged DEMO so they can be audited.
+ * render. Also writes the same session to the mock backend's session key
+ * so `supabase.auth.getSession()` returns the demo user (otherwise
+ * useSessionSync overrides the demo store with whatever stale mock
+ * session exists).
  *
- * Does NOT make Supabase queries succeed; any page that reads data from
- * Supabase (admin queues, firm employee list, etc.) will still show
- * "failed to load". That is fine for layout preview.
+ * Persists across refresh via sessionStorage. All writes are tagged DEMO
+ * so they can be audited.
  */
 
 import type { Session, User } from '@supabase/supabase-js'
@@ -18,6 +19,9 @@ import type { Database } from '@/types/database'
 type Role = Database['public']['Tables']['profiles']['Row']['role']
 
 const STORAGE_KEY = '__pwma_demo_session__'
+// Must match the SESSION_KEY in mock-client.ts so the mock auth treats
+// the demo session as the active one.
+const MOCK_SESSION_KEY = '__pwma_mock_session__'
 
 function buildFakeUser(email: string, id: string): User {
   return {
@@ -64,6 +68,15 @@ export function setDemoSession(role: Role): void {
   })
 
   sessionStorage.setItem(STORAGE_KEY, role)
+  // Write the same session into the mock backend so
+  // supabase.auth.getSession() returns this demo user.
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(MOCK_SESSION_KEY, JSON.stringify(session))
+    } catch {
+      // ignore quota / parse errors
+    }
+  }
 }
 
 export function clearDemoSession(): void {
@@ -74,6 +87,9 @@ export function clearDemoSession(): void {
     user: null,
     profile: null,
   })
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(MOCK_SESSION_KEY)
+  }
 }
 
 export function getStoredDemoRole(): Role | null {

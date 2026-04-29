@@ -1,51 +1,42 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.141 0.005 285.823);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.141 0.005 285.823);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.141 0.005 285.823);
-  --primary: oklch(0.21 0.006 285.885);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.967 0.001 286.375);
-  --secondary-foreground: oklch(0.21 0.006 285.885);
-  --muted: oklch(0.967 0.001 286.375);
-  --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.21 0.006 285.885);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0.004 286.32);
-  --input: oklch(0.92 0.004 286.32);
-  --ring: oklch(0.705 0.015 286.067);
-  --radius: 0.625rem;
+  /* Nexus design system tokens */
+  --bg-color: #ffffff;
+  --text-primary: #162040;
+  --text-secondary: rgba(22, 32, 64, 0.65);
+  --line-color: rgba(22, 32, 64, 0.25);
+  --line-solid: #162040;
+
+  /* shadcn/ui mapping */
+  --background: #ffffff;
+  --foreground: #162040;
+  --card: #ffffff;
+  --card-foreground: #162040;
+  --popover: #ffffff;
+  --popover-foreground: #162040;
+  --primary: #162040;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(22, 32, 64, 0.05);
+  --secondary-foreground: #162040;
+  --muted: rgba(22, 32, 64, 0.04);
+  --muted-foreground: rgba(22, 32, 64, 0.65);
+  --accent: rgba(22, 32, 64, 0.05);
+  --accent-foreground: #162040;
+  --destructive: #b91c1c;
+  --destructive-foreground: #ffffff;
+  --border: rgba(22, 32, 64, 0.15);
+  --input: rgba(22, 32, 64, 0.18);
+  --ring: #162040;
+  --radius: 1rem;
 }
 
 .dark {
-  --background: oklch(0.141 0.005 285.823);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.21 0.006 285.885);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.21 0.006 285.885);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.92 0.004 286.32);
-  --primary-foreground: oklch(0.21 0.006 285.885);
-  --secondary: oklch(0.274 0.006 286.033);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.274 0.006 286.033);
-  --muted-foreground: oklch(0.705 0.015 286.067);
-  --accent: oklch(0.274 0.006 286.033);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.552 0.016 285.938);
+  --background: #0a0e1c;
+  --foreground: #f5f5f5;
 }
 
 @theme inline {
@@ -68,18 +59,152 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
+  html,
   body {
     @apply bg-background text-foreground;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    font-family:
+      'Inter',
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Typography */
+  .title-huge {
+    font-size: 4.5rem;
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+    font-weight: 400;
+  }
+  .title-large {
+    font-size: 2.5rem;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-weight: 400;
+  }
+  .title-medium {
+    font-size: 1.75rem;
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    font-weight: 400;
+  }
+  .label-small {
+    font-size: 0.75rem;
+    text-transform: capitalize;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+  }
+  .value-medium {
+    font-size: 1.25rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  /* Status indicators */
+  .status-square {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    flex-shrink: 0;
+  }
+  .status-solid {
+    background-color: var(--line-solid);
+  }
+  .status-hatched {
+    background: repeating-linear-gradient(
+      45deg,
+      var(--line-solid),
+      var(--line-solid) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    opacity: 0.5;
+  }
+  .status-outline {
+    border: 1px solid var(--line-solid);
+    background: transparent;
+    opacity: 0.4;
+  }
+
+  /* Pattern bars */
+  .prop-solid {
+    background-color: var(--line-solid);
+  }
+  .prop-vertical {
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(22, 32, 64, 0.5) 2px,
+      rgba(22, 32, 64, 0.5) 4px
+    );
+  }
+  .prop-fine-vertical {
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 1px,
+      rgba(22, 32, 64, 0.2) 1px,
+      rgba(22, 32, 64, 0.2) 3px
+    );
+  }
+
+  /* Subtle grid background for main areas */
+  .nexus-grid-bg {
+    background-image:
+      linear-gradient(#162040 1px, transparent 1px),
+      linear-gradient(90deg, #162040 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* List grid (5-col) */
+  .list-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1.5fr 1fr 60px;
+    align-items: center;
+  }
+  .list-grid-4 {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 1fr 60px;
+    align-items: center;
+  }
+
+  /* Pill button base */
+  .nexus-pill-primary {
+    @apply bg-foreground text-background flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-wide transition-opacity hover:opacity-90;
+  }
+  .nexus-pill-outline {
+    @apply border-foreground/25 hover:bg-foreground/5 flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-medium tracking-wide transition-colors;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-color);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(22, 32, 64, 0.4);
   }
 }

@@ -1,15 +1,23 @@
-import { Outlet, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/session-store'
 import { useCurrentProfile } from '@/hooks/use-user'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
-import { SideNav } from '@/components/layout/nav'
+import { AppShell } from '@/components/layout/app-shell'
 
 const adminNavItems = [
-  { to: '/admin/dashboard', label: 'Dashboard' },
-  { to: '/admin/approvals', label: 'Approvals' },
-  { to: '/admin/profile-changes', label: 'Profile changes' },
-  { to: '/admin/firm-applications', label: 'Firm applications' },
+  { to: '/admin/dashboard', label: 'Dashboard', zh: '總覽', icon: 'squares-four' },
+  { to: '/admin/approvals', label: 'Approvals', zh: '會員批核', icon: 'user-check' },
+  {
+    to: '/admin/profile-changes',
+    label: 'Profile changes',
+    zh: '資料變更',
+    icon: 'pencil-line',
+  },
+  {
+    to: '/admin/firm-applications',
+    label: 'Firm applications',
+    zh: '公司申請',
+    icon: 'buildings',
+  },
 ]
 
 export function AdminLayout() {
@@ -18,7 +26,7 @@ export function AdminLayout() {
 
   if (status === 'loading' || profileQuery.isLoading) {
     return (
-      <div className="text-muted-foreground flex min-h-screen items-center justify-center text-sm">
+      <div className="text-foreground/65 flex min-h-screen items-center justify-center text-sm">
         Loading...
       </div>
     )
@@ -32,16 +40,5 @@ export function AdminLayout() {
     return <Navigate to="/dashboard" replace />
   }
 
-  return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <div className="grid flex-1 grid-cols-[220px_1fr]">
-        <SideNav items={adminNavItems} />
-        <main className="p-6">
-          <Outlet />
-        </main>
-      </div>
-      <Footer />
-    </div>
-  )
+  return <AppShell navItems={adminNavItems} brand="PWMA Admin" />
 }

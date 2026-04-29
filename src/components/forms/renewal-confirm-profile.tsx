@@ -1,13 +1,5 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { ACCOUNT_STATUS_LABELS } from '@/lib/constants/account-statuses'
 import {
   LIFECYCLE_STATE_LABELS,
@@ -24,8 +16,6 @@ import {
 /**
  * Profile-confirm gate per design spec. Members must reconfirm their
  * employer, contact, and lifecycle state before a renewal form opens.
- * Prevents the profile-mismatch pain point the previous MS/CPWP split
- * created.
  */
 
 interface Props {
@@ -41,6 +31,15 @@ interface Props {
   onEditProfile: () => void
 }
 
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-foreground/10 grid grid-cols-[180px_1fr] items-center gap-6 border-b py-4">
+      <span className="label-small">{label}</span>
+      <span className="text-[1.05rem] font-medium tracking-tight">{value}</span>
+    </div>
+  )
+}
+
 export function RenewalConfirmProfile({ profile, onConfirm, onEditProfile }: Props) {
   const qc = useQueryClient()
   const [lifecycleState, setLifecycleState] = useState<LifecycleState>(
@@ -48,63 +47,67 @@ export function RenewalConfirmProfile({ profile, onConfirm, onEditProfile }: Pro
   )
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Confirm your profile</CardTitle>
-        <CardDescription>
-          Before you renew, please confirm your details are correct. You can edit
-          non-critical fields (phone, address) directly. Critical fields (name, HKID, DOB,
-          email) require PWMA approval.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 text-sm">
-        <div className="grid grid-cols-[160px_1fr] gap-y-2">
-          <span className="text-muted-foreground">Legal name</span>
-          <span>{profile.legal_name}</span>
-          <span className="text-muted-foreground">Email</span>
-          <span>{profile.email}</span>
-          <span className="text-muted-foreground">Phone</span>
-          <span>{profile.phone ?? '—'}</span>
-          <span className="text-muted-foreground">Address</span>
-          <span>{profile.address ?? '—'}</span>
-          <span className="text-muted-foreground">Account status</span>
-          <span>{ACCOUNT_STATUS_LABELS[profile.account_status]}</span>
+    <section>
+      <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
+        <div>
+          <div className="label-small mb-1">Step 1</div>
+          <h2 className="title-medium">Confirm your profile</h2>
         </div>
-        <div className="space-y-1">
-          <p className="text-sm font-medium">Current status</p>
-          <Select
-            value={lifecycleState}
-            onValueChange={(v) => setLifecycleState(v as LifecycleState)}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {(Object.keys(LIFECYCLE_STATE_LABELS) as LifecycleState[]).map((s) => (
-                <SelectItem key={s} value={s}>
-                  {LIFECYCLE_STATE_LABELS[s]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-muted-foreground text-xs">
-            Members transition between Employee, Unemployed, and General public.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 pt-2">
-          <Button
-            onClick={() => {
-              qc.invalidateQueries({ queryKey: ['profile'] })
-              onConfirm({ lifecycle_state: lifecycleState })
-            }}
-          >
-            Confirm and continue
-          </Button>
-          <Button variant="outline" onClick={onEditProfile}>
-            Edit profile first
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+        <span className="text-foreground/65 text-xs">
+          Critical fields need PWMA approval to change
+        </span>
+      </div>
+
+      <div className="mb-12 flex flex-col">
+        <Row label="Legal name" value={profile.legal_name} />
+        <Row label="Email" value={profile.email} />
+        <Row label="Phone" value={profile.phone ?? '—'} />
+        <Row label="Address" value={profile.address ?? '—'} />
+        <Row
+          label="Account status"
+          value={ACCOUNT_STATUS_LABELS[profile.account_status]}
+        />
+      </div>
+
+      <div className="mb-12 max-w-md space-y-3">
+        <label className="label-small block">Current lifecycle state</label>
+        <Select
+          value={lifecycleState}
+          onValueChange={(v) => setLifecycleState(v as LifecycleState)}
+        >
+          <SelectTrigger className="border-foreground/15 h-12 w-full rounded-xl">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(Object.keys(LIFECYCLE_STATE_LABELS) as LifecycleState[]).map((s) => (
+              <SelectItem key={s} value={s}>
+                {LIFECYCLE_STATE_LABELS[s]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-foreground/50 text-xs leading-relaxed">
+          Members transition between Employee, Unemployed, and General public.
+        </p>
+      </div>
+
+      <div className="border-foreground/10 flex flex-wrap items-center gap-3 border-t pt-4">
+        <button
+          type="button"
+          onClick={() => {
+            qc.invalidateQueries({ queryKey: ['profile'] })
+            onConfirm({ lifecycle_state: lifecycleState })
+          }}
+          className="nexus-pill-primary"
+        >
+          <i className="ph ph-arrow-right text-base" aria-hidden="true" />
+          Confirm and continue
+        </button>
+        <button type="button" onClick={onEditProfile} className="nexus-pill-outline">
+          <i className="ph ph-pencil-line text-base" aria-hidden="true" />
+          Edit profile first
+        </button>
+      </div>
+    </section>
   )
 }

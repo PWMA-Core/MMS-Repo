@@ -45,7 +45,7 @@ type MockDb = {
   storage_objects: MockStorageObject[]
 }
 
-const DB_KEY = '__pwma_mock_db_v2__'
+const DB_KEY = '__pwma_mock_db_v3_nexus__'
 const SESSION_KEY = '__pwma_mock_session__'
 
 function nowIso(): string {
@@ -147,6 +147,7 @@ function seedDb(): MockDb {
   const adminAuthId = 'seed-auth-admin'
   const memberAuthId = 'seed-auth-member'
   const firmAdminAuthId = 'seed-auth-firm-admin'
+  const guestAuthId = 'seed-auth-guest'
   db.auth_users.push(
     {
       id: adminAuthId,
@@ -165,6 +166,13 @@ function seedDb(): MockDb {
     {
       id: firmAdminAuthId,
       email: 'firm.admin@hsbc.test',
+      password: 'demo-password-123',
+      created_at: createdAt,
+      email_confirmed_at: createdAt,
+    },
+    {
+      id: guestAuthId,
+      email: 'guest@demo.test',
       password: 'demo-password-123',
       created_at: createdAt,
       email_confirmed_at: createdAt,
@@ -213,6 +221,21 @@ function seedDb(): MockDb {
       role: 'member_firm_admin',
       account_status: 'active',
       lifecycle_state: 'employee',
+      created_at: createdAt,
+      updated_at: createdAt,
+    },
+    {
+      id: 'seed-profile-guest',
+      auth_user_id: guestAuthId,
+      hkid: 'GUEST-demo',
+      email: 'guest@demo.test',
+      legal_name: 'Demo Guest',
+      date_of_birth: null,
+      phone: '+85211111111',
+      address: null,
+      role: 'guest',
+      account_status: 'active',
+      lifecycle_state: 'general_public',
       created_at: createdAt,
       updated_at: createdAt,
     },

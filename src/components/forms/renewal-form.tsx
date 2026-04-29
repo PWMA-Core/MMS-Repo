@@ -6,7 +6,6 @@ import { toast } from 'sonner'
 import { renewalFormSchema, type RenewalFormInput } from '@/lib/validators/renewal'
 import { supabase } from '@/lib/supabase/client'
 import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Form,
@@ -142,52 +141,54 @@ export function RenewalForm({ profile }: Props) {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="application_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Membership type</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+      <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-8">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="application_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Membership type</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="border-foreground/15 h-12 rounded-xl">
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="CPWP">CPWP</SelectItem>
+                    <SelectItem value="CPWPA">CPWPA</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormDescription>Pre-filled from your last application.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="declared_opt_hours"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>OPT hours for {currentYear}</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    min={0}
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
                 </FormControl>
-                <SelectContent>
-                  <SelectItem value="CPWP">CPWP</SelectItem>
-                  <SelectItem value="CPWPA">CPWPA</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>Pre-filled from your last application.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="declared_opt_hours"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>OPT hours for {currentYear}</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  step="0.5"
-                  min={0}
-                  {...field}
-                  onChange={(e) => field.onChange(Number(e.target.value))}
-                />
-              </FormControl>
-              <FormDescription>
-                Requirement: {DEFAULT_OPT_HOURS_REQUIRED} hours. Hours auto-filled from
-                events will populate once Phase 4 is live; for now, declare manually.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormDescription>
+                  Requirement: {DEFAULT_OPT_HOURS_REQUIRED} hours. Auto-fill once Phase 4
+                  is live; for now, declare manually.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="employment_change_note"
@@ -204,9 +205,22 @@ export function RenewalForm({ profile }: Props) {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={mutation.isPending} className="w-full">
-          {mutation.isPending ? 'Submitting...' : 'Submit renewal'}
-        </Button>
+        <div className="border-foreground/10 flex justify-end border-t pt-4">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="nexus-pill-primary disabled:opacity-50"
+          >
+            {mutation.isPending ? (
+              'Submitting...'
+            ) : (
+              <>
+                <i className="ph ph-paper-plane-tilt text-base" aria-hidden="true" />
+                Submit renewal
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </Form>
   )

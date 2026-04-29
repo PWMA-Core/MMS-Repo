@@ -9,7 +9,7 @@ export function Root() {
     <>
       <Outlet />
       <Toaster richColors position="top-right" />
-      {import.meta.env.DEV && <DevNav />}
+      {import.meta.env.VITE_DISABLE_DEVNAV !== 'true' && <DevNav />}
     </>
   )
 }

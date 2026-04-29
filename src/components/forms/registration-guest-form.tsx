@@ -13,7 +13,6 @@ import { mapAuthError } from '@/lib/auth/error-messages'
 import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
 import { useDemoAutofill } from '@/lib/debug/use-demo-autofill'
 import { DEMO_REGISTRATION_GUEST } from '@/lib/debug/dummy-data'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Form,
@@ -24,6 +23,17 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+
+function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
+  return (
+    <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
+      <div>
+        <div className="label-small mb-1">{kicker}</div>
+        <h2 className="title-medium">{title}</h2>
+      </div>
+    </div>
+  )
+}
 
 export function RegistrationGuestForm() {
   const navigate = useNavigate()
@@ -42,9 +52,6 @@ export function RegistrationGuestForm() {
 
   const mutation = useMutation({
     mutationFn: async (input: RegisterGuestInput) => {
-      // Guest profiles do not require HKID at registration. Use a sentinel
-      // value so the NOT NULL + UNIQUE constraint holds. Upgrades to member
-      // collect HKID later.
       const guestHkidSentinel = `GUEST-${crypto.randomUUID()}`
 
       const { data: auth, error: authError } = await supabase.auth.signUp({
@@ -84,84 +91,107 @@ export function RegistrationGuestForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="legal_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Legal name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormDescription>
-                Guests can register for events without providing HKID. Convert to full
-                member later to apply for certifications.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form
+        onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+        className="space-y-12"
+      >
+        <section>
+          <SectionHeading kicker="Profile" title="Your details" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="legal_name"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Legal name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Guests can register for events without providing HKID. Convert to full
+                    member later to apply for certifications.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <section>
+          <SectionHeading kicker="Security" title="Account password" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirm_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm password</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="confirm_password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Creating account...' : 'Create guest account'}
-        </Button>
+        <div className="border-foreground/10 flex justify-end border-t pt-4">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="nexus-pill-primary disabled:opacity-50"
+          >
+            {mutation.isPending ? (
+              'Creating account...'
+            ) : (
+              <>
+                <i className="ph ph-plus-circle text-base" aria-hidden="true" />
+                Create guest account
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </Form>
   )

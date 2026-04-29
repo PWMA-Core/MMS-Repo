@@ -1,25 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
 
 import { supabase } from '@/lib/supabase/client'
 import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import type { Database } from '@/types/database'
 
 type ChangeRequest = Database['public']['Tables']['profile_change_requests']['Row']
@@ -93,83 +76,110 @@ export function AdminProfileChangesPage() {
     },
   })
 
+  const total = pending.data?.length ?? 0
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Profile change requests</h1>
-        <p className="text-muted-foreground text-sm">
-          Critical-field changes (legal name, DOB, HKID, email) require admin approval.
-        </p>
+    <>
+      <header className="mb-16 flex items-end justify-between">
+        <div>
+          <div className="label-small mb-4">Queue</div>
+          <h1 className="title-huge">
+            Profile
+            <br />
+            Changes
+          </h1>
+        </div>
+      </header>
+
+      <div className="mb-20 grid grid-cols-12 gap-16">
+        <section className="col-span-7 flex gap-16">
+          <div className="flex flex-col">
+            <span className="label-small mb-2">Awaiting review</span>
+            <span className="text-5xl font-light tracking-tight">{total}</span>
+          </div>
+        </section>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending changes</CardTitle>
-          <CardDescription>
-            {pending.isLoading
-              ? 'Loading...'
-              : `${pending.data?.length ?? 0} awaiting review`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {pending.isError && (
-            <p className="text-destructive text-sm">
-              Failed to load: {(pending.error as Error).message}
-            </p>
-          )}
-          {!pending.isLoading && !pending.data?.length && (
-            <p className="text-muted-foreground text-sm">No pending change requests.</p>
-          )}
-          {!!pending.data?.length && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Field</TableHead>
-                  <TableHead>Old value</TableHead>
-                  <TableHead>New value</TableHead>
-                  <TableHead>Requested</TableHead>
-                  <TableHead>Note</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pending.data.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-mono text-xs">{r.field_name}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {r.old_value ?? '—'}
-                    </TableCell>
-                    <TableCell>{r.new_value}</TableCell>
-                    <TableCell>
-                      {format(new Date(r.requested_at), 'yyyy-MM-dd HH:mm')}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground max-w-xs truncate">
-                      {r.note ?? '—'}
-                    </TableCell>
-                    <TableCell className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => decide.mutate({ request: r, approve: true })}
-                        disabled={decide.isPending}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => decide.mutate({ request: r, approve: false })}
-                        disabled={decide.isPending}
-                      >
-                        Reject
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      <section className="mt-auto">
+        <div className="list-grid border-foreground text-foreground/65 mb-2 border-b pb-4">
+          <span className="label-small">Member</span>
+          <span className="label-small">Field</span>
+          <span className="label-small">Old → New</span>
+          <span className="label-small">Status</span>
+          <span className="label-small text-right">Actions</span>
+        </div>
+
+        {pending.isError && (
+          <p className="text-destructive py-8 text-sm">
+            Failed to load: {(pending.error as Error).message}
+          </p>
+        )}
+        {pending.isLoading && (
+          <p className="text-foreground/65 py-8 text-sm">Loading...</p>
+        )}
+        {!pending.isLoading && total === 0 && (
+          <p className="text-foreground/65 py-8 text-sm">No pending change requests.</p>
+        )}
+
+        {pending.data?.map((r, idx) => {
+          const last = idx === total - 1
+          return (
+            <div
+              key={r.id}
+              className={`list-grid py-5 ${last ? 'border-b-0' : 'border-foreground/10 border-b'} relative -mx-4 px-4`}
+            >
+              <div className="flex flex-col gap-1 pl-4">
+                <span className="text-[1.1rem] font-medium tracking-tight">
+                  {r.profile?.legal_name ?? '—'}
+                </span>
+                <span className="text-foreground/65 font-mono text-xs">
+                  {r.profile?.email ?? '—'}
+                </span>
+              </div>
+              <div>
+                <span className="value-medium font-mono text-sm">{r.field_name}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-foreground/50 text-xs">{r.old_value ?? '—'}</span>
+                <span className="text-[0.95rem]">{r.new_value}</span>
+                {r.note && (
+                  <span className="text-foreground/50 max-w-xs truncate text-xs">
+                    “{r.note}”
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="status-square status-hatched" />
+                <span className="text-foreground/80 text-[0.9rem] tracking-wide">
+                  Pending
+                </span>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => decide.mutate({ request: r, approve: true })}
+                  disabled={decide.isPending}
+                  className="bg-foreground text-background rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-opacity hover:opacity-90 disabled:opacity-30"
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() => decide.mutate({ request: r, approve: false })}
+                  disabled={decide.isPending}
+                  className="border-foreground/25 hover:border-foreground rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide transition-colors disabled:opacity-30"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          )
+        })}
+
+        <p className="text-foreground/50 pt-6 text-xs">
+          Critical-field changes (legal name, DOB, HKID, email) require admin approval.
+        </p>
+      </section>
+    </>
   )
 }
