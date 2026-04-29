@@ -4,6 +4,7 @@ import { Bug, X, ChevronDown, ChevronUp } from 'lucide-react'
 
 import { cn } from '@/lib/utils/cn'
 import { Button } from '@/components/ui/button'
+import { useTr } from '@/components/ui/tr'
 import {
   clearDemoSession,
   getStoredDemoRole,
@@ -18,17 +19,21 @@ type Role = Database['public']['Tables']['profiles']['Row']['role']
 interface RouteSpec {
   path: string
   label: string
+  zhLabel: string
   autofillable?: boolean
   note?: string
+  zhNote?: string
 }
 
 interface Section {
   title: string
+  zhTitle: string
   routes: RouteSpec[]
 }
 
 interface StoryStep {
   label: string
+  zhLabel: string
   /**
    * Demo session role to set before navigating. `null` clears the session
    * (anon visitor). Omit to leave the current role untouched.
@@ -37,13 +42,16 @@ interface StoryStep {
   path: string
   autofill?: boolean
   note?: string
+  zhNote?: string
 }
 
 interface Story {
   id: string
   title: string
+  zhTitle: string
   kicker: string
   description: string
+  zhDescription: string
   steps: StoryStep[]
 }
 
@@ -64,27 +72,35 @@ const STORIES: Story[] = [
     id: 'firm-onboarding',
     kicker: 'WF1',
     title: 'New firm onboarding',
+    zhTitle: '新機構入會',
     description:
       'Public firm submits application; PWMA admin reviews and approves; firm + admin account auto-created.',
+    zhDescription: '公開機構提交申請；PWMA 管理員審批；機構同管理員帳戶自動建立。',
     steps: [
       {
         label: '1. Visitor opens public application form',
+        zhLabel: '1. 訪客打開公開申請表',
         role: null,
         path: '/apply-firm',
         autofill: true,
         note: 'Form auto-fills with demo firm data. Walk through the 3 sections, then submit.',
+        zhNote: '表格會自動填入示範機構資料。逐個 section 行一遍，然後提交。',
       },
       {
         label: '2. Confirmation page',
+        zhLabel: '2. 確認頁',
         role: null,
         path: '/apply-firm/thanks',
         note: '"Application received" page. Talk through what happens next: M365 email, admin review.',
+        zhNote: '「申請已收到」頁面。介紹下一步：M365 電郵、管理員審批。',
       },
       {
         label: '3. PWMA admin reviews the queue',
+        zhLabel: '3. PWMA 管理員處理佇列',
         role: 'pwma_admin',
         path: '/admin/firm-applications',
         note: 'Click Approve on the row submitted in step 1. Toast + status flips to Approved.',
+        zhNote: '喺第 1 步提交嘅申請點「批准」。Toast 出現，狀態轉為「已批准」。',
       },
     ],
   },
@@ -92,39 +108,51 @@ const STORIES: Story[] = [
     id: 'individual-registration',
     kicker: 'WF2',
     title: 'New individual member registration',
+    zhTitle: '新個人會員註冊',
     description:
       'Visitor signs up as individual member; PWMA admin approves; member signs in.',
+    zhDescription: '訪客以個人會員身份註冊；PWMA 管理員批核；會員登入。',
     steps: [
       {
         label: '1. Visitor opens sign-up chooser',
+        zhLabel: '1. 訪客打開註冊選擇頁',
         role: null,
         path: '/sign-up',
         note: 'Three options: Individual, Guest, Apply as a firm. Select Individual.',
+        zhNote: '三個選項：個人、訪客、機構申請。揀「個人」。',
       },
       {
         label: '2. Fill individual registration form',
+        zhLabel: '2. 填寫個人註冊表',
         role: null,
         path: '/register/individual',
         autofill: true,
         note: 'Auto-fills with demo data. 3 sections: identity, contact, security. Submit.',
+        zhNote: '自動填入示範資料。共 3 個 section：身份、聯絡、保安。提交。',
       },
       {
         label: '3. Email verification info page',
+        zhLabel: '3. 電郵核實提示頁',
         role: null,
         path: '/verify',
         note: '"Check your email" explainer. In production, M365 sends the verify link.',
+        zhNote: '「請查閱電郵」嘅提示頁。實際運行時，M365 會發核實連結。',
       },
       {
         label: '4. PWMA admin reviews the queue',
+        zhLabel: '4. PWMA 管理員處理佇列',
         role: 'pwma_admin',
         path: '/admin/approvals',
         note: 'See the pending member. Click Approve. Status flips to Active.',
+        zhNote: '睇到待批核會員。點「批准」。狀態轉為「啟用中」。',
       },
       {
         label: '5. Member signs in to their dashboard',
+        zhLabel: '5. 會員登入儀表板',
         role: 'individual_member',
         path: '/dashboard',
         note: 'Status: Active. Member sees the welcome view.',
+        zhNote: '狀態：啟用中。會員睇到歡迎頁。',
       },
     ],
   },
@@ -132,26 +160,35 @@ const STORIES: Story[] = [
     id: 'profile-change',
     kicker: 'WF5',
     title: 'Profile change request (critical field)',
+    zhTitle: '資料修改申請（受保護欄位）',
     description:
       'Member submits a change request for a critical field; PWMA admin approves; field updates.',
+    zhDescription: '會員為受保護欄位提交修改申請；PWMA 管理員批核；欄位更新。',
     steps: [
       {
         label: '1. Member opens their profile',
+        zhLabel: '1. 會員打開個人資料',
         role: 'individual_member',
         path: '/profile',
         note: 'Show critical fields (locked) and editable fields (inline). Click Request change on Legal name.',
+        zhNote:
+          '展示受保護欄位（鎖定）同可編輯欄位（即場改）。喺「法定全名」點「申請修改」。',
       },
       {
         label: '2. PWMA admin reviews the queue',
+        zhLabel: '2. PWMA 管理員處理佇列',
         role: 'pwma_admin',
         path: '/admin/profile-changes',
         note: 'See the pending request with old → new value. Click Approve.',
+        zhNote: '睇到待批核申請（舊值 → 新值）。點「批准」。',
       },
       {
         label: '3. Member sees updated field',
+        zhLabel: '3. 會員睇到更新後嘅欄位',
         role: 'individual_member',
         path: '/profile',
         note: 'Field is now updated. Approval audit trail captured.',
+        zhNote: '欄位已更新。批核紀錄已保存。',
       },
     ],
   },
@@ -159,20 +196,26 @@ const STORIES: Story[] = [
     id: 'firm-admin-view',
     kicker: 'SOW 2.09',
     title: 'Firm admin consolidated view',
+    zhTitle: '機構管理員整合視圖',
     description:
       'Firm admin signs in and sees the firm summary plus the directory of all firm members.',
+    zhDescription: '機構管理員登入後睇到機構概要同所有員工名冊。',
     steps: [
       {
         label: '1. Firm admin dashboard',
+        zhLabel: '1. 機構儀表板',
         role: 'member_firm_admin',
         path: '/firm/dashboard',
         note: 'Firm tier, status, employee + active counts, coverage bar.',
+        zhNote: '機構等級、狀態、員工數同啟用人數、覆蓋率。',
       },
       {
         label: '2. Firm employees directory',
+        zhLabel: '2. 員工名冊',
         role: 'member_firm_admin',
         path: '/firm/employees',
         note: 'List of every member linked to this firm with full profile + status. Powered by RLS SECURITY DEFINER helper.',
+        zhNote: '機構內每位員工嘅完整資料同狀態，由 RLS SECURITY DEFINER helper 提供。',
       },
     ],
   },
@@ -180,14 +223,18 @@ const STORIES: Story[] = [
     id: 'admin-overview',
     kicker: 'Admin',
     title: 'PWMA admin home',
+    zhTitle: 'PWMA 管理員首頁',
     description:
       'Single place where PWMA staff see all queues at a glance with live counts.',
+    zhDescription: 'PWMA 同事一個位睇晒所有佇列同即時數字。',
     steps: [
       {
         label: '1. Admin dashboard',
+        zhLabel: '1. 管理員儀表板',
         role: 'pwma_admin',
         path: '/admin/dashboard',
         note: 'Live counts: members pending, profile changes, firm apps. Single-pane queue view.',
+        zhNote: '即時數字：待批會員、資料修改、機構申請。集中佇列視圖。',
       },
     ],
   },
@@ -196,70 +243,109 @@ const STORIES: Story[] = [
 const ROUTE_SECTIONS: Section[] = [
   {
     title: 'Public',
+    zhTitle: '公開',
     routes: [
-      { path: '/', label: 'Landing' },
-      { path: '/about', label: 'About' },
-      { path: '/apply-firm', label: 'Apply as firm (WF1)', autofillable: true },
-      { path: '/apply-firm/thanks', label: 'Firm apply thanks' },
+      { path: '/', label: 'Landing', zhLabel: '首頁' },
+      { path: '/about', label: 'About', zhLabel: '關於' },
+      {
+        path: '/apply-firm',
+        label: 'Apply as firm (WF1)',
+        zhLabel: '機構申請 (WF1)',
+        autofillable: true,
+      },
+      {
+        path: '/apply-firm/thanks',
+        label: 'Firm apply thanks',
+        zhLabel: '機構申請已提交',
+      },
     ],
   },
   {
     title: 'Auth',
+    zhTitle: '登入認證',
     routes: [
-      { path: '/sign-in', label: 'Sign in', autofillable: true },
-      { path: '/sign-up', label: 'Sign up (chooser)' },
-      { path: '/verify', label: 'Verify email (info)' },
-      { path: '/reset-password', label: 'Reset password', autofillable: true },
-      { path: '/auth/callback', label: 'Auth callback (transient)' },
+      { path: '/sign-in', label: 'Sign in', zhLabel: '登入', autofillable: true },
+      { path: '/sign-up', label: 'Sign up (chooser)', zhLabel: '註冊（選擇頁）' },
+      { path: '/verify', label: 'Verify email (info)', zhLabel: '核實電郵（提示頁）' },
+      {
+        path: '/reset-password',
+        label: 'Reset password',
+        zhLabel: '重設密碼',
+        autofillable: true,
+      },
+      {
+        path: '/auth/callback',
+        label: 'Auth callback (transient)',
+        zhLabel: '認證 callback（過渡頁）',
+      },
     ],
   },
   {
     title: 'Register',
+    zhTitle: '註冊',
     routes: [
       {
         path: '/register/individual',
         label: 'Register — individual',
+        zhLabel: '註冊—個人',
         autofillable: true,
       },
-      { path: '/register/guest', label: 'Register — guest', autofillable: true },
+      {
+        path: '/register/guest',
+        label: 'Register — guest',
+        zhLabel: '註冊—訪客',
+        autofillable: true,
+      },
     ],
   },
   {
     title: 'Member',
+    zhTitle: '會員',
     routes: [
-      { path: '/dashboard', label: 'Dashboard' },
-      { path: '/profile', label: 'My profile' },
-      { path: '/renewal', label: 'Renewal (WF3)' },
+      { path: '/dashboard', label: 'Dashboard', zhLabel: '總覽' },
+      { path: '/profile', label: 'My profile', zhLabel: '個人資料' },
+      { path: '/renewal', label: 'Renewal (WF3)', zhLabel: '續期 (WF3)' },
     ],
   },
   {
     title: 'Firm admin',
+    zhTitle: '機構管理員',
     routes: [
-      { path: '/firm/dashboard', label: 'Firm dashboard' },
-      { path: '/firm/employees', label: 'Employees list' },
+      { path: '/firm/dashboard', label: 'Firm dashboard', zhLabel: '機構儀表板' },
+      { path: '/firm/employees', label: 'Employees list', zhLabel: '員工名冊' },
     ],
   },
   {
     title: 'PWMA admin',
+    zhTitle: 'PWMA 管理員',
     routes: [
-      { path: '/admin/dashboard', label: 'Admin dashboard' },
-      { path: '/admin/approvals', label: 'Member approvals' },
-      { path: '/admin/profile-changes', label: 'Profile changes' },
-      { path: '/admin/firm-applications', label: 'Firm applications' },
+      { path: '/admin/dashboard', label: 'Admin dashboard', zhLabel: '管理員儀表板' },
+      { path: '/admin/approvals', label: 'Member approvals', zhLabel: '會員批核' },
+      {
+        path: '/admin/profile-changes',
+        label: 'Profile changes',
+        zhLabel: '資料修改',
+      },
+      {
+        path: '/admin/firm-applications',
+        label: 'Firm applications',
+        zhLabel: '機構申請',
+      },
     ],
   },
 ]
 
-const ROLES: { value: Role; label: string }[] = [
-  { value: 'individual_member', label: 'Individual' },
-  { value: 'member_firm_admin', label: 'Firm admin' },
-  { value: 'pwma_admin', label: 'PWMA admin' },
-  { value: 'guest', label: 'Guest' },
+const ROLES: { value: Role; label: string; zhLabel: string }[] = [
+  { value: 'individual_member', label: 'Individual', zhLabel: '個人會員' },
+  { value: 'member_firm_admin', label: 'Firm admin', zhLabel: '機構管理員' },
+  { value: 'pwma_admin', label: 'PWMA admin', zhLabel: 'PWMA 管理員' },
+  { value: 'guest', label: 'Guest', zhLabel: '訪客' },
 ]
 
 type Tab = 'stories' | 'routes'
 
 export function DevNav() {
+  const t = useTr()
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<Tab>('stories')
   const [activeRole, setActiveRole] = useState<Role | null>(() =>
@@ -314,11 +400,18 @@ export function DevNav() {
     setOpen(false)
   }
 
+  function roleLabel(role: Role): string {
+    const r = ROLES.find((x) => x.value === role)
+    return r ? t(r.label, r.zhLabel) : role
+  }
+
   return (
     <>
       <button
         type="button"
-        aria-label={open ? 'Close DevNav' : 'Open DevNav'}
+        aria-label={
+          open ? t('Close DevNav', '關閉示範控制台') : t('Open DevNav', '開啟示範控制台')
+        }
         onClick={() => setOpen((v) => !v)}
         className={cn(
           'fixed right-4 bottom-4 z-[100] flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors',
@@ -333,21 +426,23 @@ export function DevNav() {
       {open && (
         <aside
           role="dialog"
-          aria-label="DevNav"
+          aria-label={t('Demo Console', '示範控制台')}
           className="bg-background border-foreground/10 fixed right-4 bottom-20 z-[100] flex max-h-[85vh] w-[420px] flex-col overflow-hidden rounded-2xl border shadow-2xl"
         >
           <header className="border-foreground/10 flex items-center justify-between border-b px-5 py-4">
             <div>
-              <h2 className="text-base font-medium tracking-tight">Demo Console</h2>
+              <h2 className="text-base font-medium tracking-tight">
+                {t('Demo Console', '示範控制台')}
+              </h2>
               <p className="text-foreground/65 mt-0.5 text-xs">
-                Dev-only.{' '}
+                {t('Dev-only.', '僅供開發。')}{' '}
                 {isMockSupabase ? (
                   <span className="bg-foreground/5 text-foreground/80 rounded px-1.5 py-0.5">
-                    mock backend
+                    {t('mock backend', '模擬後端')}
                   </span>
                 ) : (
                   <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-900">
-                    live Supabase
+                    {t('live Supabase', '連線 Supabase')}
                   </span>
                 )}
               </p>
@@ -369,7 +464,9 @@ export function DevNav() {
                   window.location.reload()
                 }}
               >
-                {resetArmed ? 'Click again to confirm' : 'Reset data'}
+                {resetArmed
+                  ? t('Click again to confirm', '再點一次確認')
+                  : t('Reset data', '重置資料')}
               </Button>
             )}
           </header>
@@ -386,7 +483,7 @@ export function DevNav() {
                   : 'text-foreground/50 hover:text-foreground',
               )}
             >
-              Demo flows
+              {t('Demo flows', '示範流程')}
             </button>
             <button
               type="button"
@@ -398,7 +495,7 @@ export function DevNav() {
                   : 'text-foreground/50 hover:text-foreground',
               )}
             >
-              All routes
+              {t('All routes', '所有路徑')}
             </button>
           </div>
 
@@ -406,12 +503,10 @@ export function DevNav() {
           <section className="border-foreground/10 bg-foreground/[0.02] border-b px-5 py-3">
             <div className="flex items-center justify-between gap-3">
               <span className="text-foreground/65 text-[10px] tracking-[0.04em] uppercase">
-                Acting as
+                {t('Acting as', '目前身份')}
               </span>
               <span className="text-xs font-medium">
-                {activeRole
-                  ? ROLES.find((r) => r.value === activeRole)?.label
-                  : 'Anon visitor'}
+                {activeRole ? roleLabel(activeRole) : t('Anon visitor', '匿名訪客')}
               </span>
             </div>
             <div className="mt-2 flex flex-wrap gap-1">
@@ -425,7 +520,7 @@ export function DevNav() {
                     : 'border-foreground/20 hover:border-foreground/50',
                 )}
               >
-                Anon
+                {t('Anon', '匿名')}
               </button>
               {ROLES.map((r) => (
                 <button
@@ -439,7 +534,7 @@ export function DevNav() {
                       : 'border-foreground/20 hover:border-foreground/50',
                   )}
                 >
-                  {r.label}
+                  {t(r.label, r.zhLabel)}
                 </button>
               ))}
             </div>
@@ -464,15 +559,16 @@ export function DevNav() {
                         <div className="min-w-0 flex-1">
                           <div className="mb-0.5 flex items-center gap-2">
                             <span className="text-foreground/50 text-[10px] tracking-[0.04em] uppercase">
-                              Story {String.fromCharCode(65 + idx)} · {story.kicker}
+                              {t('Story', '故事')} {String.fromCharCode(65 + idx)} ·{' '}
+                              {story.kicker}
                             </span>
                           </div>
                           <p className="text-sm font-medium tracking-tight">
-                            {story.title}
+                            {t(story.title, story.zhTitle)}
                           </p>
                           {!expanded && (
                             <p className="text-foreground/50 mt-1 line-clamp-2 text-xs">
-                              {story.description}
+                              {t(story.description, story.zhDescription)}
                             </p>
                           )}
                         </div>
@@ -485,7 +581,7 @@ export function DevNav() {
                       {expanded && (
                         <>
                           <p className="text-foreground/65 -mt-1 px-4 pb-3 text-xs leading-relaxed">
-                            {story.description}
+                            {t(story.description, story.zhDescription)}
                           </p>
                           <ol className="border-foreground/10 divide-foreground/5 divide-y border-t">
                             {story.steps.map((step, sIdx) => {
@@ -502,29 +598,31 @@ export function DevNav() {
                                 >
                                   <div className="flex items-start justify-between gap-2">
                                     <p className="text-sm font-medium tracking-tight">
-                                      {step.label}
+                                      {t(step.label, step.zhLabel)}
                                     </p>
                                     <button
                                       type="button"
                                       onClick={() => runStep(step)}
                                       className="bg-foreground text-background shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide transition-opacity hover:opacity-90"
                                     >
-                                      Run
+                                      {t('Run', '執行')}
                                     </button>
                                   </div>
                                   {step.note && (
                                     <p className="text-foreground/55 text-[11px] leading-relaxed">
-                                      {step.note}
+                                      {t(step.note, step.zhNote ?? step.note)}
                                     </p>
                                   )}
                                   <p className="text-foreground/40 font-mono text-[10px]">
                                     {step.role === null
-                                      ? 'as anon · '
+                                      ? `${t('as anon', '以匿名訪客')} · `
                                       : step.role
-                                        ? `as ${ROLES.find((r) => r.value === step.role)?.label} · `
+                                        ? `${t('as', '以')} ${roleLabel(step.role)} · `
                                         : ''}
                                     {step.path}
-                                    {step.autofill ? ' (autofill)' : ''}
+                                    {step.autofill
+                                      ? ` ${t('(autofill)', '（自動填）')}`
+                                      : ''}
                                   </p>
                                 </li>
                               )
@@ -549,7 +647,7 @@ export function DevNav() {
                         onClick={() => setExpandedSection(expanded ? null : s.title)}
                         className="hover:bg-foreground/[0.03] flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium transition-colors"
                       >
-                        <span>{s.title}</span>
+                        <span>{t(s.title, s.zhTitle)}</span>
                         {expanded ? (
                           <ChevronUp className="text-foreground/50 h-4 w-4" />
                         ) : (
@@ -570,7 +668,9 @@ export function DevNav() {
                               >
                                 <div className="flex items-center justify-between gap-2">
                                   <div className="min-w-0 flex-1">
-                                    <p className="truncate text-sm">{r.label}</p>
+                                    <p className="truncate text-sm">
+                                      {t(r.label, r.zhLabel)}
+                                    </p>
                                     <p className="text-foreground/50 truncate font-mono text-[10px]">
                                       {r.path}
                                     </p>
@@ -581,7 +681,7 @@ export function DevNav() {
                                       onClick={() => go(r.path)}
                                       className="border-foreground/20 hover:border-foreground/50 rounded-full border px-2.5 py-1 text-[11px] transition-colors"
                                     >
-                                      Go
+                                      {t('Go', '前往')}
                                     </button>
                                     {r.autofillable && (
                                       <button
@@ -589,14 +689,14 @@ export function DevNav() {
                                         onClick={() => go(r.path, true)}
                                         className="bg-foreground text-background rounded-full px-2.5 py-1 text-[11px] transition-opacity hover:opacity-90"
                                       >
-                                        Go + fill
+                                        {t('Go + fill', '前往 + 自動填')}
                                       </button>
                                     )}
                                   </div>
                                 </div>
                                 {r.note && (
                                   <p className="text-foreground/50 text-[10px]">
-                                    {r.note}
+                                    {t(r.note, r.zhNote ?? r.note)}
                                   </p>
                                 )}
                               </li>
@@ -612,9 +712,9 @@ export function DevNav() {
           )}
 
           <footer className="text-foreground/55 border-foreground/10 border-t px-5 py-2.5 text-[10px]">
-            Hidden in production.{' '}
+            {t('Hidden in production.', '正式環境會隱藏。')}{' '}
             <Link to="/" className="underline underline-offset-4">
-              Go to landing
+              {t('Go to landing', '前往首頁')}
             </Link>
           </footer>
         </aside>
