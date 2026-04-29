@@ -113,7 +113,7 @@ export const DEMO_REGISTRATION_FIRM_ADMIN = {
 
 export const DEMO_REGISTRATION_GUEST = {
   legal_name: 'Test Guest',
-  email: 'guest@demo.test',
+  email: 'new-guest@demo.test',
   phone: '+85211111111',
   password: DEMO_PASSWORD,
   confirm_password: DEMO_PASSWORD,

@@ -269,6 +269,7 @@ export function DevNav() {
   const [expandedSection, setExpandedSection] = useState<string | null>(
     ROUTE_SECTIONS[0]!.title,
   )
+  const [resetArmed, setResetArmed] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -354,22 +355,21 @@ export function DevNav() {
             {isMockSupabase && (
               <Button
                 size="sm"
-                variant="outline"
+                variant={resetArmed ? 'destructive' : 'outline'}
                 onClick={() => {
-                  if (
-                    confirm(
-                      'Reset all mock data (profiles, firms, applications, notifications)? This cannot be undone.',
-                    )
-                  ) {
-                    resetMockDb()
-                    reloadMockDb()
-                    clearDemoSession()
-                    setActiveRole(null)
-                    window.location.reload()
+                  if (!resetArmed) {
+                    setResetArmed(true)
+                    setTimeout(() => setResetArmed(false), 3000)
+                    return
                   }
+                  resetMockDb()
+                  reloadMockDb()
+                  clearDemoSession()
+                  setActiveRole(null)
+                  window.location.reload()
                 }}
               >
-                Reset data
+                {resetArmed ? 'Click again to confirm' : 'Reset data'}
               </Button>
             )}
           </header>
