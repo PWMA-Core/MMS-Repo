@@ -108,7 +108,8 @@ export function RegistrationIndividualForm() {
       navigate('/verify')
     },
     onError: (error: Error) => {
-      toast.error(mapAuthError(error).message)
+      const f = mapAuthError(error)
+      toast.error(t(f.message, f.messageZh))
     },
   })
 

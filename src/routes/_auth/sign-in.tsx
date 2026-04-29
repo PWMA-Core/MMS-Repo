@@ -48,7 +48,7 @@ export function SignInPage() {
     onError: (error: Error) => {
       const friendly = mapAuthError(error)
       setNeedsVerification(friendly.code === 'email_not_confirmed')
-      toast.error(friendly.message)
+      toast.error(t(friendly.message, friendly.messageZh))
     },
   })
 

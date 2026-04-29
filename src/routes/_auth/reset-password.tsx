@@ -42,7 +42,8 @@ export function ResetPasswordPage() {
       form.reset()
     },
     onError: (error: Error) => {
-      toast.error(mapAuthError(error).message)
+      const f = mapAuthError(error)
+      toast.error(t(f.message, f.messageZh))
     },
   })
 

@@ -18,7 +18,8 @@ export function ResendVerificationButton({ email }: { email: string }) {
     const { error } = await supabase.auth.resend({ type: 'signup', email })
     setPending(false)
     if (error) {
-      toast.error(mapAuthError(error).message)
+      const f = mapAuthError(error)
+      toast.error(t(f.message, f.messageZh))
       return
     }
     setSent(true)
