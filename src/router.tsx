@@ -9,6 +9,7 @@ import { AuthLayout } from '@/routes/_auth/_layout'
 import { SignInPage } from '@/routes/_auth/sign-in'
 import { SignUpPage } from '@/routes/_auth/sign-up'
 import { VerifyPage } from '@/routes/_auth/verify'
+import { VerifyConfirmedPage } from '@/routes/_auth/verify-confirmed'
 import { ResetPasswordPage } from '@/routes/_auth/reset-password'
 import { CallbackPage } from '@/routes/_auth/callback'
 import { MemberLayout } from '@/routes/_member/_layout'
@@ -46,6 +47,7 @@ export const router = createBrowserRouter([
           { path: 'sign-in', element: <SignInPage /> },
           { path: 'sign-up', element: <SignUpPage /> },
           { path: 'verify', element: <VerifyPage /> },
+          { path: 'verify/confirmed', element: <VerifyConfirmedPage /> },
           { path: 'reset-password', element: <ResetPasswordPage /> },
           { path: 'auth/callback', element: <CallbackPage /> },
           { path: 'register/individual', element: <RegisterIndividualPage /> },

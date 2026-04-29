@@ -61,12 +61,18 @@ export function VerifyPage() {
       </div>
 
       {isMockSupabase && (
-        <p className="text-foreground/40 mb-6 text-center font-mono text-[10px]">
-          <Tr
-            en="Demo mode · email auto-confirmed · admin review pending"
-            zh="示範模式 · 電郵自動確認 · 等待管理員審批"
-          />
-        </p>
+        <div className="border-foreground/10 mb-6 flex items-center justify-between gap-4 rounded-2xl border border-dashed p-4">
+          <p className="text-foreground/55 font-mono text-[10px] leading-relaxed">
+            <Tr
+              en="Demo mode · email auto-confirmed · simulate the email click below"
+              zh="示範模式 · 電郵自動確認 · 按下方按鈕模擬點擊電郵連結"
+            />
+          </p>
+          <Link to="/verify/confirmed" className="nexus-pill-primary shrink-0">
+            <i className="ph ph-arrow-right" aria-hidden="true" />
+            <Tr en="Open verify link" zh="開啟核實連結" />
+          </Link>
+        </div>
       )}
 
       <p className="text-center text-sm">

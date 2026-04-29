@@ -139,16 +139,25 @@ const STORIES: Story[] = [
         zhNote: '「請查閱電郵」嘅提示頁。實際運行時，M365 會發核實連結。',
       },
       {
-        label: '4. PWMA admin reviews the queue',
-        zhLabel: '4. PWMA 管理員處理佇列',
+        label: '4. Visitor clicks the email verification link',
+        zhLabel: '4. 訪客點擊電郵核實連結',
+        role: null,
+        path: '/verify/confirmed',
+        note: 'Simulates the user clicking the link in the email. Lands on a confirmation page: account created, email confirmed, awaiting PWMA approval.',
+        zhNote:
+          '模擬用戶點擊電郵入面嘅連結。落到確認頁：帳戶已建立、電郵已確認、等待 PWMA 批核。',
+      },
+      {
+        label: '5. PWMA admin reviews the queue',
+        zhLabel: '5. PWMA 管理員處理佇列',
         role: 'pwma_admin',
         path: '/admin/approvals',
         note: 'See the pending member. Click Approve. Status flips to Active.',
         zhNote: '睇到待批核會員。點「批准」。狀態轉為「啟用中」。',
       },
       {
-        label: '5. Member signs in to their dashboard',
-        zhLabel: '5. 會員登入儀表板',
+        label: '6. Member signs in to their dashboard',
+        zhLabel: '6. 會員登入儀表板',
         role: 'individual_member',
         path: '/dashboard',
         note: 'Status: Active. Member sees the welcome view.',
@@ -268,6 +277,11 @@ const ROUTE_SECTIONS: Section[] = [
       { path: '/sign-up', label: 'Sign up (chooser)', zhLabel: '註冊（選擇頁）' },
       { path: '/verify', label: 'Verify email (info)', zhLabel: '核實電郵（提示頁）' },
       {
+        path: '/verify/confirmed',
+        label: 'Verify confirmed',
+        zhLabel: '核實成功',
+      },
+      {
         path: '/reset-password',
         label: 'Reset password',
         zhLabel: '重設密碼',
@@ -379,7 +393,14 @@ export function DevNav() {
     }
   }
 
-  function runStoryStep(storyId: string, stepIdx: number) {
+  // mode = 'arrive': navigate to step.path with NO autofill (empty form).
+  // mode = 'fill':   navigate to step.path?demo=1 to trigger autofill.
+  // For non-autofill steps, the two are equivalent.
+  function runStoryStep(
+    storyId: string,
+    stepIdx: number,
+    mode: 'arrive' | 'fill' = 'arrive',
+  ) {
     const story = STORIES.find((s) => s.id === storyId)
     if (!story) return
     if (stepIdx < 0 || stepIdx >= story.steps.length) return
@@ -395,14 +416,54 @@ export function DevNav() {
         setActiveRole(step.role)
       }
     }
-    const target = step.autofill ? `${step.path}?demo=1` : step.path
+    const wantFill = mode === 'fill' && step.autofill
+    const target = wantFill ? `${step.path}?demo=1` : step.path
     // Defer navigate so the session state update commits before any layout
-    // guard reads it. Without this defer, AuthLayout (still mounted because
-    // URL hasn't changed yet) sees status flip to authenticated and tries to
-    // redirect to /dashboard, which then cascades through MemberLayout to
-    // /admin/dashboard (or wherever the role-aware redirect lands), winning
-    // the race against the navigate call here.
+    // guard reads it.
     setTimeout(() => navigate(target), 0)
+  }
+
+  // Smart forward step: if the active step has autofill and we've arrived
+  // at the page WITHOUT having filled yet, the next forward action fills
+  // in place. Otherwise advance to the next step (arrive mode = empty form).
+  function advance() {
+    if (activeStoryId === null) return false
+    const story = STORIES.find((s) => s.id === activeStoryId)
+    if (!story) return false
+    const step = story.steps[activeStepIndex]
+    if (!step) return false
+    const onStepPath = location.pathname === step.path
+    const filled = location.search.includes('demo=1')
+    if (step.autofill && onStepPath && !filled) {
+      runStoryStep(activeStoryId, activeStepIndex, 'fill')
+      return true
+    }
+    if (activeStepIndex + 1 < story.steps.length) {
+      runStoryStep(activeStoryId, activeStepIndex + 1, 'arrive')
+      return true
+    }
+    return false
+  }
+
+  // Smart back step: if currently filled on an autofill step, un-fill (go
+  // to arrive mode of the same step). Otherwise go back one step.
+  function retreat() {
+    if (activeStoryId === null) return false
+    const story = STORIES.find((s) => s.id === activeStoryId)
+    if (!story) return false
+    const step = story.steps[activeStepIndex]
+    if (!step) return false
+    const onStepPath = location.pathname === step.path
+    const filled = location.search.includes('demo=1')
+    if (step.autofill && onStepPath && filled) {
+      runStoryStep(activeStoryId, activeStepIndex, 'arrive')
+      return true
+    }
+    if (activeStepIndex > 0) {
+      runStoryStep(activeStoryId, activeStepIndex - 1, 'arrive')
+      return true
+    }
+    return false
   }
 
   // Global keyboard shortcuts:
@@ -436,16 +497,9 @@ export function DevNav() {
         activeStoryId !== null ? STORIES.findIndex((s) => s.id === activeStoryId) : -1
 
       if (e.key === 'ArrowRight' && activeStoryId !== null) {
-        const story = STORIES[currentStoryIdx]
-        if (story && activeStepIndex + 1 < story.steps.length) {
-          e.preventDefault()
-          runStoryStep(activeStoryId, activeStepIndex + 1)
-        }
+        if (advance()) e.preventDefault()
       } else if (e.key === 'ArrowLeft' && activeStoryId !== null) {
-        if (activeStepIndex > 0) {
-          e.preventDefault()
-          runStoryStep(activeStoryId, activeStepIndex - 1)
-        }
+        if (retreat()) e.preventDefault()
       } else if (e.key === 'ArrowDown') {
         // Next story — wraps from last to first. If no active story, start at A.
         const nextIdx = currentStoryIdx < 0 ? 0 : (currentStoryIdx + 1) % STORIES.length
@@ -492,11 +546,20 @@ export function DevNav() {
   const activeStoryLetter = activeStory
     ? String.fromCharCode(65 + STORIES.findIndex((s) => s.id === activeStory.id))
     : ''
-  const canPrev = activeStoryId !== null && activeStepIndex > 0
+  const onActivePath = activeStep ? location.pathname === activeStep.path : false
+  const filledOnActive = onActivePath && location.search.includes('demo=1')
+  const canPrev =
+    activeStoryId !== null &&
+    activeStory !== null &&
+    activeStory !== undefined &&
+    // Either we're filled on a step (un-fill is possible), or there's a previous step.
+    ((activeStep?.autofill && filledOnActive) || activeStepIndex > 0)
   const canNext =
     activeStory !== null &&
     activeStory !== undefined &&
-    activeStepIndex + 1 < activeStory.steps.length
+    // Either we can fill in place, or there's a next step.
+    ((activeStep?.autofill && onActivePath && !filledOnActive) ||
+      activeStepIndex + 1 < activeStory.steps.length)
 
   return (
     <div className="fixed top-4 left-4 z-[100] flex max-h-[calc(100vh-2rem)] w-[420px] flex-col gap-2">
@@ -540,10 +603,10 @@ export function DevNav() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (canPrev) runStoryStep(activeStoryId!, activeStepIndex - 1)
+                  retreat()
                 }}
                 disabled={!canPrev}
-                aria-label={t('Previous step', '上一步')}
+                aria-label={t('Previous', '上一步')}
                 className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-1.5 py-0.5 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ‹
@@ -552,10 +615,14 @@ export function DevNav() {
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation()
-                  if (canNext) runStoryStep(activeStoryId!, activeStepIndex + 1)
+                  advance()
                 }}
                 disabled={!canNext}
-                aria-label={t('Next step', '下一步')}
+                aria-label={
+                  activeStep?.autofill && onActivePath && !filledOnActive
+                    ? t('Fill', '填寫')
+                    : t('Next', '下一步')
+                }
                 className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-1.5 py-0.5 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ›
@@ -762,13 +829,30 @@ export function DevNav() {
                                     <p className="text-sm font-medium tracking-tight">
                                       {t(step.label, step.zhLabel)}
                                     </p>
-                                    <button
-                                      type="button"
-                                      onClick={() => runStoryStep(story.id, sIdx)}
-                                      className="bg-foreground text-background shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide transition-opacity hover:opacity-90"
-                                    >
-                                      {t('Run', '執行')}
-                                    </button>
+                                    <div className="flex shrink-0 gap-1">
+                                      <button
+                                        type="button"
+                                        onClick={() =>
+                                          runStoryStep(story.id, sIdx, 'arrive')
+                                        }
+                                        className="border-foreground/20 hover:border-foreground/50 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors"
+                                      >
+                                        {step.autofill
+                                          ? t('Open', '前往')
+                                          : t('Run', '執行')}
+                                      </button>
+                                      {step.autofill && (
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            runStoryStep(story.id, sIdx, 'fill')
+                                          }
+                                          className="bg-foreground text-background rounded-full px-2.5 py-1 text-[11px] font-semibold transition-opacity hover:opacity-90"
+                                        >
+                                          {t('Fill', '填寫')}
+                                        </button>
+                                      )}
+                                    </div>
                                   </div>
                                   {step.note && (
                                     <p className="text-foreground/55 text-[11px] leading-relaxed">
