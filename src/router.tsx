@@ -26,6 +26,7 @@ import { AdminDashboardPage } from '@/routes/_admin/dashboard'
 import { AdminApprovalsPage } from '@/routes/_admin/approvals'
 import { AdminProfileChangesPage } from '@/routes/_admin/profile-changes'
 import { AdminFirmApplicationsPage } from '@/routes/_admin/firm-applications'
+import { DemoGmailPage } from '@/routes/_demo/gmail'
 
 export const router = createBrowserRouter([
   {
@@ -71,6 +72,9 @@ export const router = createBrowserRouter([
           { path: 'employees', element: <FirmEmployeesPage /> },
         ],
       },
+      // Demo-only routes — no PWMA layout chrome (we want them to look
+      // like external apps, e.g. Gmail).
+      { path: 'demo/gmail', element: <DemoGmailPage /> },
       {
         path: 'admin',
         element: <AdminLayout />,
