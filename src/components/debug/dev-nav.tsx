@@ -388,6 +388,10 @@ export function DevNav() {
   // and the keyboard step advance.
   const [activeStoryId, setActiveStoryId] = useState<string | null>(null)
   const [activeStepIndex, setActiveStepIndex] = useState(-1)
+  // True after the active step has been autofilled (mode='fill' was used).
+  // We track this in state because useDemoAutofill strips ?demo=1 from the
+  // URL after applying it, so we can't read filled state off the URL.
+  const [activeStepFilled, setActiveStepFilled] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -420,6 +424,7 @@ export function DevNav() {
     const step = story.steps[stepIdx]!
     setActiveStoryId(storyId)
     setActiveStepIndex(stepIdx)
+    setActiveStepFilled(mode === 'fill' && !!step.autofill)
     if (step.role !== undefined) {
       if (step.role === null) {
         clearDemoSession()
@@ -436,18 +441,16 @@ export function DevNav() {
     setTimeout(() => navigate(target), 0)
   }
 
-  // Smart forward step: if the active step has autofill and we've arrived
-  // at the page WITHOUT having filled yet, the next forward action fills
-  // in place. Otherwise advance to the next step (arrive mode = empty form).
+  // Smart forward step: if the active step has autofill and hasn't been
+  // filled yet, the next forward action fills in place. Otherwise advance
+  // to the next step (arrive mode = empty form).
   function advance() {
     if (activeStoryId === null) return false
     const story = STORIES.find((s) => s.id === activeStoryId)
     if (!story) return false
     const step = story.steps[activeStepIndex]
     if (!step) return false
-    const onStepPath = location.pathname === step.path
-    const filled = location.search.includes('demo=1')
-    if (step.autofill && onStepPath && !filled) {
+    if (step.autofill && !activeStepFilled) {
       runStoryStep(activeStoryId, activeStepIndex, 'fill')
       return true
     }
@@ -458,17 +461,15 @@ export function DevNav() {
     return false
   }
 
-  // Smart back step: if currently filled on an autofill step, un-fill (go
-  // to arrive mode of the same step). Otherwise go back one step.
+  // Smart back step: if the active autofill step has been filled, un-fill
+  // (re-run in arrive mode = empty form). Otherwise go back one step.
   function retreat() {
     if (activeStoryId === null) return false
     const story = STORIES.find((s) => s.id === activeStoryId)
     if (!story) return false
     const step = story.steps[activeStepIndex]
     if (!step) return false
-    const onStepPath = location.pathname === step.path
-    const filled = location.search.includes('demo=1')
-    if (step.autofill && onStepPath && filled) {
+    if (step.autofill && activeStepFilled) {
       runStoryStep(activeStoryId, activeStepIndex, 'arrive')
       return true
     }
@@ -559,20 +560,19 @@ export function DevNav() {
   const activeStoryLetter = activeStory
     ? String.fromCharCode(65 + STORIES.findIndex((s) => s.id === activeStory.id))
     : ''
-  const onActivePath = activeStep ? location.pathname === activeStep.path : false
-  const filledOnActive = onActivePath && location.search.includes('demo=1')
   const canPrev =
     activeStoryId !== null &&
     activeStory !== null &&
     activeStory !== undefined &&
-    // Either we're filled on a step (un-fill is possible), or there's a previous step.
-    ((activeStep?.autofill && filledOnActive) || activeStepIndex > 0)
+    // Either un-fill is possible, or there's a previous step.
+    ((activeStep?.autofill && activeStepFilled) || activeStepIndex > 0)
   const canNext =
     activeStory !== null &&
     activeStory !== undefined &&
-    // Either we can fill in place, or there's a next step.
-    ((activeStep?.autofill && onActivePath && !filledOnActive) ||
+    // Either fill is possible, or there's a next step.
+    ((activeStep?.autofill && !activeStepFilled) ||
       activeStepIndex + 1 < activeStory.steps.length)
+  const nextActionIsFill = !!activeStep?.autofill && !activeStepFilled
 
   return (
     <div className="fixed top-4 left-4 z-[100] flex max-h-[calc(100vh-2rem)] w-[420px] flex-col gap-2">
@@ -631,11 +631,7 @@ export function DevNav() {
                   advance()
                 }}
                 disabled={!canNext}
-                aria-label={
-                  activeStep?.autofill && onActivePath && !filledOnActive
-                    ? t('Fill', '填寫')
-                    : t('Next', '下一步')
-                }
+                aria-label={nextActionIsFill ? t('Fill', '填寫') : t('Next', '下一步')}
                 className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-1.5 py-0.5 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-30"
               >
                 ›
