@@ -29,13 +29,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tr, useTr } from '@/components/ui/tr'
 
-function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
+function SectionHeading({
+  kicker,
+  title,
+  kickerZh,
+  titleZh,
+}: {
+  kicker: string
+  title: string
+  kickerZh: string
+  titleZh: string
+}) {
   return (
     <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
       <div>
-        <div className="label-small mb-1">{kicker}</div>
-        <h2 className="title-medium">{title}</h2>
+        <div className="label-small mb-1">
+          <Tr en={kicker} zh={kickerZh} />
+        </div>
+        <h2 className="title-medium">
+          <Tr en={title} zh={titleZh} />
+        </h2>
       </div>
     </div>
   )
@@ -43,6 +58,7 @@ function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
 
 export function FirmApplicationForm() {
   const navigate = useNavigate()
+  const t = useTr()
   const form = useForm<FirmApplicationInput>({
     resolver: zodResolver(firmApplicationSchema),
     defaultValues: {
@@ -74,7 +90,12 @@ export function FirmApplicationForm() {
       return null
     },
     onSuccess: (_, input) => {
-      toast.success('Application submitted. PWMA will be in touch.')
+      toast.success(
+        t(
+          'Application submitted. PWMA will be in touch.',
+          '申請已提交，PWMA 將與你聯絡。',
+        ),
+      )
       dispatchNotificationAsync({
         to_email: input.contact_email,
         template_key: 'firm_application_received',
@@ -86,7 +107,7 @@ export function FirmApplicationForm() {
       navigate('/apply-firm/thanks')
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Submission failed')
+      toast.error(error.message || t('Submission failed', '提交失敗'))
     },
   })
 
@@ -98,14 +119,21 @@ export function FirmApplicationForm() {
       >
         {/* Section 1: Firm */}
         <section>
-          <SectionHeading kicker="Section 1" title="Firm details" />
+          <SectionHeading
+            kicker="Section 1"
+            title="Firm details"
+            kickerZh="第一節"
+            titleZh="機構資料"
+          />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
               name="proposed_firm_name"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Firm name</FormLabel>
+                  <FormLabel>
+                    <Tr en="Firm name" zh="機構名稱" />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -118,12 +146,17 @@ export function FirmApplicationForm() {
               name="business_registration_number"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Business registration number</FormLabel>
+                  <FormLabel>
+                    <Tr en="Business registration number" zh="商業登記號碼" />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
                   <FormDescription>
-                    As issued by the Hong Kong Inland Revenue Department.
+                    <Tr
+                      en="As issued by the Hong Kong Inland Revenue Department."
+                      zh="由香港稅務局發出。"
+                    />
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -134,7 +167,9 @@ export function FirmApplicationForm() {
               name="tier_requested"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Membership tier</FormLabel>
+                  <FormLabel>
+                    <Tr en="Membership tier" zh="會籍級別" />
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="border-foreground/15 h-12 rounded-xl">
@@ -142,9 +177,11 @@ export function FirmApplicationForm() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="full_member">Full member firm</SelectItem>
+                      <SelectItem value="full_member">
+                        <Tr en="Full member firm" zh="正式會員機構" />
+                      </SelectItem>
                       <SelectItem value="associate_member">
-                        Associate member firm
+                        <Tr en="Associate member firm" zh="附屬會員機構" />
                       </SelectItem>
                     </SelectContent>
                   </Select>
@@ -157,7 +194,9 @@ export function FirmApplicationForm() {
               name="firm_address"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Firm address (optional)</FormLabel>
+                  <FormLabel>
+                    <Tr en="Firm address (optional)" zh="機構地址（選填）" />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -170,14 +209,21 @@ export function FirmApplicationForm() {
 
         {/* Section 2: Contact */}
         <section>
-          <SectionHeading kicker="Section 2" title="Primary contact" />
+          <SectionHeading
+            kicker="Section 2"
+            title="Primary contact"
+            kickerZh="第二節"
+            titleZh="主要聯絡人"
+          />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
               name="contact_name"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Contact name</FormLabel>
+                  <FormLabel>
+                    <Tr en="Contact name" zh="聯絡人姓名" />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -190,7 +236,9 @@ export function FirmApplicationForm() {
               name="contact_email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact email</FormLabel>
+                  <FormLabel>
+                    <Tr en="Contact email" zh="聯絡電郵" />
+                  </FormLabel>
                   <FormControl>
                     <Input type="email" {...field} />
                   </FormControl>
@@ -203,7 +251,9 @@ export function FirmApplicationForm() {
               name="contact_phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Contact phone</FormLabel>
+                  <FormLabel>
+                    <Tr en="Contact phone" zh="聯絡電話" />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -216,18 +266,28 @@ export function FirmApplicationForm() {
 
         {/* Section 3: Notes */}
         <section>
-          <SectionHeading kicker="Section 3" title="Notes (optional)" />
+          <SectionHeading
+            kicker="Section 3"
+            title="Notes (optional)"
+            kickerZh="第三節"
+            titleZh="備註（選填）"
+          />
           <FormField
             control={form.control}
             name="notes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Notes to PWMA</FormLabel>
+                <FormLabel>
+                  <Tr en="Notes to PWMA" zh="給 PWMA 的備註" />
+                </FormLabel>
                 <FormControl>
                   <Input {...field} />
                 </FormControl>
                 <FormDescription>
-                  Anything PWMA should know about the firm or application context.
+                  <Tr
+                    en="Anything PWMA should know about the firm or application context."
+                    zh="任何有助 PWMA 了解機構或申請背景嘅資料。"
+                  />
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -243,11 +303,11 @@ export function FirmApplicationForm() {
             className="nexus-pill-primary disabled:opacity-50"
           >
             {mutation.isPending ? (
-              'Submitting...'
+              <Tr en="Submitting..." zh="提交中..." />
             ) : (
               <>
                 <i className="ph ph-paper-plane-tilt text-base" aria-hidden="true" />
-                Submit application
+                <Tr en="Submit application" zh="提交申請" />
               </>
             )}
           </button>

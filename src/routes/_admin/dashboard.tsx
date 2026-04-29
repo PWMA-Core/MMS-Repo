@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { supabase } from '@/lib/supabase/client'
+import { Tr, useTr } from '@/components/ui/tr'
 
 export function AdminDashboardPage() {
+  const t = useTr()
   const pendingCounts = useQuery({
     queryKey: ['admin', 'dashboard-counts'],
     queryFn: async () => {
@@ -38,21 +40,40 @@ export function AdminDashboardPage() {
       {/* Header */}
       <header className="mb-16 flex items-end justify-between">
         <div>
-          <div className="label-small mb-4">Overview</div>
+          <div className="label-small mb-4">
+            <Tr en="Overview" zh="概覽" />
+          </div>
           <h1 className="title-huge">
-            Admin
-            <br />
-            Console
+            <Tr
+              en={
+                <>
+                  Admin
+                  <br />
+                  Console
+                </>
+              }
+              zh={
+                <>
+                  管理員
+                  <br />
+                  控制台
+                </>
+              }
+            />
           </h1>
         </div>
         <div className="mb-2 flex gap-4">
           <button type="button" className="nexus-pill-outline">
             <i className="ph ph-download-simple" aria-hidden="true" />
-            <span>Export</span>
+            <span>
+              <Tr en="Export" zh="匯出" />
+            </span>
           </button>
           <Link to="/admin/firm-applications" className="nexus-pill-primary">
             <i className="ph ph-list-checks text-lg" aria-hidden="true" />
-            <span>Open queue</span>
+            <span>
+              <Tr en="Open queue" zh="開啟佇列" />
+            </span>
           </Link>
         </div>
       </header>
@@ -62,11 +83,15 @@ export function AdminDashboardPage() {
         <section className="col-span-7 flex flex-col justify-between">
           <div className="mb-12 flex gap-16">
             <div className="flex flex-col">
-              <span className="label-small mb-2">Pending workload</span>
+              <span className="label-small mb-2">
+                <Tr en="Pending workload" zh="待處理工作" />
+              </span>
               <span className="text-5xl font-light tracking-tight">{total}</span>
             </div>
             <div className="flex flex-col">
-              <span className="label-small mb-2">Member approvals</span>
+              <span className="label-small mb-2">
+                <Tr en="Member approvals" zh="會員審批" />
+              </span>
               <span className="text-foreground/65 text-5xl font-light tracking-tight">
                 {pendingCounts.data?.approvals ?? '—'}
               </span>
@@ -77,12 +102,20 @@ export function AdminDashboardPage() {
           <div className="border-foreground relative h-[180px] w-full border-b">
             {[
               {
-                label: 'Members',
+                label: t('Members', '會員'),
                 value: pendingCounts.data?.approvals ?? 0,
                 height: 110,
               },
-              { label: 'Changes', value: pendingCounts.data?.changes ?? 0, height: 65 },
-              { label: 'Firms', value: pendingCounts.data?.firmApps ?? 0, height: 145 },
+              {
+                label: t('Changes', '修改'),
+                value: pendingCounts.data?.changes ?? 0,
+                height: 65,
+              },
+              {
+                label: t('Firms', '機構'),
+                value: pendingCounts.data?.firmApps ?? 0,
+                height: 145,
+              },
             ].map((bar, i) => (
               <div
                 key={bar.label}
@@ -100,13 +133,19 @@ export function AdminDashboardPage() {
             ))}
           </div>
           <div className="mt-4 flex w-full justify-between">
-            <span className="label-small">Open work, by queue</span>
-            <span className="label-small">Live</span>
+            <span className="label-small">
+              <Tr en="Open work, by queue" zh="各佇列未處理工作" />
+            </span>
+            <span className="label-small">
+              <Tr en="Live" zh="即時" />
+            </span>
           </div>
         </section>
 
         <section className="col-span-5 flex flex-col justify-end">
-          <div className="label-small mb-6">Queue distribution</div>
+          <div className="label-small mb-6">
+            <Tr en="Queue distribution" zh="佇列分布" />
+          </div>
           <div className="mb-8 flex h-[90px] w-full">
             <div
               className="prop-solid h-full"
@@ -129,7 +168,7 @@ export function AdminDashboardPage() {
               </span>
               <span className="label-small flex items-center gap-2">
                 <span className="bg-foreground h-2 w-2 rounded-full" />
-                Members
+                <Tr en="Members" zh="會員" />
               </span>
             </div>
             <div className="flex flex-col items-center">
@@ -138,7 +177,7 @@ export function AdminDashboardPage() {
               </span>
               <span className="label-small flex items-center gap-2">
                 <span className="prop-vertical border-foreground/25 h-2 w-2 border" />
-                Changes
+                <Tr en="Changes" zh="修改" />
               </span>
             </div>
             <div className="flex flex-col items-end">
@@ -147,7 +186,7 @@ export function AdminDashboardPage() {
               </span>
               <span className="label-small flex items-center gap-2">
                 <span className="prop-fine-vertical border-foreground/25 h-2 w-2 border" />
-                Firms
+                <Tr en="Firms" zh="機構" />
               </span>
             </div>
           </div>
@@ -157,34 +196,56 @@ export function AdminDashboardPage() {
       {/* Queue list */}
       <section className="mt-auto">
         <div className="list-grid border-foreground text-foreground/65 mb-2 border-b pb-4">
-          <span className="label-small">Queue</span>
-          <span className="label-small">Pending</span>
-          <span className="label-small">Description</span>
-          <span className="label-small">Status</span>
-          <span className="label-small text-right">Action</span>
+          <span className="label-small">
+            <Tr en="Queue" zh="佇列" />
+          </span>
+          <span className="label-small">
+            <Tr en="Pending" zh="待處理" />
+          </span>
+          <span className="label-small">
+            <Tr en="Description" zh="說明" />
+          </span>
+          <span className="label-small">
+            <Tr en="Status" zh="狀態" />
+          </span>
+          <span className="label-small text-right">
+            <Tr en="Action" zh="操作" />
+          </span>
         </div>
 
         <QueueRow
-          name="Member approvals"
+          name={t('Member approvals', '會員審批')}
           count={pendingCounts.data?.approvals ?? 0}
-          description="New member registrations awaiting review"
+          description={t(
+            'New member registrations awaiting review',
+            '待審核的新會員申請',
+          )}
           to="/admin/approvals"
           variant="solid"
+          clickLabel={t('Click to open queue', '點擊開啟佇列')}
+          pendingLabel={t('Pending', '待審批')}
+          clearLabel={t('Clear', '已清')}
         />
         <QueueRow
-          name="Profile changes"
+          name={t('Profile changes', '資料修改申請')}
           count={pendingCounts.data?.changes ?? 0}
-          description="Critical-field change requests"
+          description={t('Critical-field change requests', '受保護欄位修改申請')}
           to="/admin/profile-changes"
           variant="hatched"
+          clickLabel={t('Click to open queue', '點擊開啟佇列')}
+          pendingLabel={t('Pending', '待審批')}
+          clearLabel={t('Clear', '已清')}
         />
         <QueueRow
-          name="Firm applications"
+          name={t('Firm applications', '機構申請')}
           count={pendingCounts.data?.firmApps ?? 0}
-          description="Firm onboarding (WF1)"
+          description={t('Firm onboarding (WF1)', '機構入會申請 (WF1)')}
           to="/admin/firm-applications"
           variant="outline"
           last
+          clickLabel={t('Click to open queue', '點擊開啟佇列')}
+          pendingLabel={t('Pending', '待審批')}
+          clearLabel={t('Clear', '已清')}
         />
       </section>
     </>
@@ -198,6 +259,9 @@ function QueueRow({
   to,
   variant,
   last = false,
+  clickLabel,
+  pendingLabel,
+  clearLabel,
 }: {
   name: string
   count: number
@@ -205,6 +269,9 @@ function QueueRow({
   to: string
   variant: 'solid' | 'hatched' | 'outline'
   last?: boolean
+  clickLabel: string
+  pendingLabel: string
+  clearLabel: string
 }) {
   const statusClass =
     variant === 'solid'
@@ -219,7 +286,7 @@ function QueueRow({
     >
       <div className="flex flex-col gap-1 pl-4">
         <span className="text-[1.1rem] font-medium tracking-tight">{name}</span>
-        <span className="text-foreground/65 text-xs">Click to open queue</span>
+        <span className="text-foreground/65 text-xs">{clickLabel}</span>
       </div>
       <div>
         <span className="value-medium">{count}</span>
@@ -230,7 +297,7 @@ function QueueRow({
       <div className="flex items-center gap-3">
         <span className={`status-square ${statusClass}`} />
         <span className="text-foreground/80 text-[0.9rem] tracking-wide">
-          {count > 0 ? 'Pending' : 'Clear'}
+          {count > 0 ? pendingLabel : clearLabel}
         </span>
       </div>
       <div className="text-right">

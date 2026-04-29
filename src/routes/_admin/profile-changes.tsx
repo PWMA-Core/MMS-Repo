@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
 import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
 import type { Database } from '@/types/database'
+import { Tr, useTr } from '@/components/ui/tr'
 
 type ChangeRequest = Database['public']['Tables']['profile_change_requests']['Row']
 type ChangeRequestWithProfile = ChangeRequest & {
@@ -12,6 +13,7 @@ type ChangeRequestWithProfile = ChangeRequest & {
 
 export function AdminProfileChangesPage() {
   const qc = useQueryClient()
+  const t = useTr()
 
   const pending = useQuery<ChangeRequestWithProfile[]>({
     queryKey: ['admin', 'profile-change-requests'],
@@ -54,7 +56,11 @@ export function AdminProfileChangesPage() {
       if (requestError) throw requestError
     },
     onSuccess: (_d, variables) => {
-      toast.success(variables.approve ? 'Change approved and applied' : 'Change rejected')
+      toast.success(
+        variables.approve
+          ? t('Change approved and applied', '修改已批准並套用')
+          : t('Change rejected', '修改已拒絕'),
+      )
       if (variables.request.profile) {
         dispatchNotificationAsync({
           to_email: variables.request.profile.email,
@@ -72,7 +78,7 @@ export function AdminProfileChangesPage() {
       qc.invalidateQueries({ queryKey: ['admin', 'profile-change-requests'] })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Action failed')
+      toast.error(error.message || t('Action failed', '操作失敗'))
     },
   })
 
@@ -82,11 +88,26 @@ export function AdminProfileChangesPage() {
     <>
       <header className="mb-16 flex items-end justify-between">
         <div>
-          <div className="label-small mb-4">Queue</div>
+          <div className="label-small mb-4">
+            <Tr en="Queue" zh="佇列" />
+          </div>
           <h1 className="title-huge">
-            Profile
-            <br />
-            Changes
+            <Tr
+              en={
+                <>
+                  Profile
+                  <br />
+                  Changes
+                </>
+              }
+              zh={
+                <>
+                  資料
+                  <br />
+                  修改申請
+                </>
+              }
+            />
           </h1>
         </div>
       </header>
@@ -94,7 +115,9 @@ export function AdminProfileChangesPage() {
       <div className="mb-20 grid grid-cols-12 gap-16">
         <section className="col-span-7 flex gap-16">
           <div className="flex flex-col">
-            <span className="label-small mb-2">Awaiting review</span>
+            <span className="label-small mb-2">
+              <Tr en="Awaiting review" zh="待審核" />
+            </span>
             <span className="text-5xl font-light tracking-tight">{total}</span>
           </div>
         </section>
@@ -102,23 +125,37 @@ export function AdminProfileChangesPage() {
 
       <section className="mt-auto">
         <div className="list-grid border-foreground text-foreground/65 mb-2 border-b pb-4">
-          <span className="label-small">Member</span>
-          <span className="label-small">Field</span>
-          <span className="label-small">Old → New</span>
-          <span className="label-small">Status</span>
-          <span className="label-small text-right">Actions</span>
+          <span className="label-small">
+            <Tr en="Member" zh="會員" />
+          </span>
+          <span className="label-small">
+            <Tr en="Field" zh="欄位" />
+          </span>
+          <span className="label-small">
+            <Tr en="Old → New" zh="舊值 → 新值" />
+          </span>
+          <span className="label-small">
+            <Tr en="Status" zh="狀態" />
+          </span>
+          <span className="label-small text-right">
+            <Tr en="Actions" zh="操作" />
+          </span>
         </div>
 
         {pending.isError && (
           <p className="text-destructive py-8 text-sm">
-            Failed to load: {(pending.error as Error).message}
+            {t('Failed to load:', '載入失敗：')} {(pending.error as Error).message}
           </p>
         )}
         {pending.isLoading && (
-          <p className="text-foreground/65 py-8 text-sm">Loading...</p>
+          <p className="text-foreground/65 py-8 text-sm">
+            <Tr en="Loading..." zh="載入中..." />
+          </p>
         )}
         {!pending.isLoading && total === 0 && (
-          <p className="text-foreground/65 py-8 text-sm">No pending change requests.</p>
+          <p className="text-foreground/65 py-8 text-sm">
+            <Tr en="No pending change requests." zh="目前沒有待處理的修改申請。" />
+          </p>
         )}
 
         {pending.data?.map((r, idx) => {
@@ -144,14 +181,14 @@ export function AdminProfileChangesPage() {
                 <span className="text-[0.95rem]">{r.new_value}</span>
                 {r.note && (
                   <span className="text-foreground/50 max-w-xs truncate text-xs">
-                    “{r.note}”
+                    "{r.note}"
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-3">
                 <span className="status-square status-hatched" />
                 <span className="text-foreground/80 text-[0.9rem] tracking-wide">
-                  Pending
+                  <Tr en="Pending" zh="待審批" />
                 </span>
               </div>
               <div className="flex justify-end gap-2">
@@ -161,7 +198,7 @@ export function AdminProfileChangesPage() {
                   disabled={decide.isPending}
                   className="bg-foreground text-background rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-opacity hover:opacity-90 disabled:opacity-30"
                 >
-                  Approve
+                  <Tr en="Approve" zh="批准" />
                 </button>
                 <button
                   type="button"
@@ -169,7 +206,7 @@ export function AdminProfileChangesPage() {
                   disabled={decide.isPending}
                   className="border-foreground/25 hover:border-foreground rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide transition-colors disabled:opacity-30"
                 >
-                  Reject
+                  <Tr en="Reject" zh="拒絕" />
                 </button>
               </div>
             </div>
@@ -177,7 +214,10 @@ export function AdminProfileChangesPage() {
         })}
 
         <p className="text-foreground/50 pt-6 text-xs">
-          Critical-field changes (legal name, DOB, HKID, email) require admin approval.
+          <Tr
+            en="Critical-field changes (legal name, DOB, HKID, email) require admin approval."
+            zh="受保護欄位修改（法定姓名、出生日期、HKID、電郵）須經管理員批准。"
+          />
         </p>
       </section>
     </>

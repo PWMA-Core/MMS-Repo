@@ -18,8 +18,10 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Tr, useTr } from '@/components/ui/tr'
 
 export function ResetPasswordPage() {
+  const t = useTr()
   const form = useForm<ResetPasswordInput>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { email: '' },
@@ -34,7 +36,9 @@ export function ResetPasswordPage() {
       if (error) throw error
     },
     onSuccess: () => {
-      toast.success('Reset link sent. Check your inbox.')
+      toast.success(
+        t('Reset link sent. Check your inbox.', '重設連結已發送，請查閱電郵。'),
+      )
       form.reset()
     },
     onError: (error: Error) => {
@@ -45,10 +49,17 @@ export function ResetPasswordPage() {
   return (
     <div className="w-full max-w-md">
       <div className="mb-10">
-        <div className="label-small mb-3">Recovery</div>
-        <h1 className="title-large">Reset password</h1>
+        <div className="label-small mb-3">
+          <Tr en="Recovery" zh="帳戶恢復" />
+        </div>
+        <h1 className="title-large">
+          <Tr en="Reset password" zh="重設密碼" />
+        </h1>
         <p className="text-foreground/65 mt-3 text-sm">
-          Enter your email to receive a reset link.
+          <Tr
+            en="Enter your email to receive a reset link."
+            zh="輸入你嘅電郵地址以接收重設連結。"
+          />
         </p>
       </div>
 
@@ -62,7 +73,9 @@ export function ResetPasswordPage() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="label-small">Email</FormLabel>
+                <FormLabel className="label-small">
+                  <Tr en="Email" zh="電郵" />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -81,11 +94,11 @@ export function ResetPasswordPage() {
             className="bg-foreground text-background flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-wide transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {mutation.isPending ? (
-              'Sending...'
+              <Tr en="Sending..." zh="發送中..." />
             ) : (
               <>
                 <i className="ph ph-paper-plane-tilt text-base" aria-hidden="true" />
-                Send reset link
+                <Tr en="Send reset link" zh="發送重設連結" />
               </>
             )}
           </button>
@@ -94,7 +107,7 @@ export function ResetPasswordPage() {
               to="/sign-in"
               className="text-foreground/65 hover:text-foreground underline underline-offset-4"
             >
-              Back to sign-in
+              <Tr en="Back to sign-in" zh="返回登入" />
             </Link>
           </p>
         </form>

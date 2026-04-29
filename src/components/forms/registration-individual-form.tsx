@@ -23,13 +23,28 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Tr, useTr } from '@/components/ui/tr'
 
-function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
+function SectionHeading({
+  kicker,
+  title,
+  kickerZh,
+  titleZh,
+}: {
+  kicker: string
+  title: string
+  kickerZh: string
+  titleZh: string
+}) {
   return (
     <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
       <div>
-        <div className="label-small mb-1">{kicker}</div>
-        <h2 className="title-medium">{title}</h2>
+        <div className="label-small mb-1">
+          <Tr en={kicker} zh={kickerZh} />
+        </div>
+        <h2 className="title-medium">
+          <Tr en={title} zh={titleZh} />
+        </h2>
       </div>
     </div>
   )
@@ -37,6 +52,7 @@ function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
 
 export function RegistrationIndividualForm() {
   const navigate = useNavigate()
+  const t = useTr()
 
   const form = useForm<RegisterIndividualInput>({
     resolver: zodResolver(registerIndividualSchema),
@@ -75,7 +91,12 @@ export function RegistrationIndividualForm() {
       return auth
     },
     onSuccess: (_data, input) => {
-      toast.success('Account created. Check your email to verify.')
+      toast.success(
+        t(
+          'Account created. Check your email to verify.',
+          '帳戶已建立，請查閱電郵進行驗證。',
+        ),
+      )
       dispatchNotificationAsync({
         to_email: input.email,
         template_key: 'registration_received',
@@ -98,7 +119,12 @@ export function RegistrationIndividualForm() {
         className="space-y-12"
       >
         <section>
-          <SectionHeading kicker="Identity" title="Protected fields" />
+          <SectionHeading
+            kicker="Identity"
+            title="Protected fields"
+            kickerZh="身份"
+            titleZh="受保護資料"
+          />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
@@ -110,7 +136,10 @@ export function RegistrationIndividualForm() {
                     <Input placeholder="A123456(3)" autoComplete="off" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Including check digit. Cannot be changed without PWMA approval.
+                    <Tr
+                      en="Including check digit. Cannot be changed without PWMA approval."
+                      zh="請包括核對號碼。如需修改，須經 PWMA 批准。"
+                    />
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -121,9 +150,14 @@ export function RegistrationIndividualForm() {
               name="legal_name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Legal name</FormLabel>
+                  <FormLabel>
+                    <Tr en="Legal name" zh="法定姓名" />
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="As shown on your HKID" {...field} />
+                    <Input
+                      placeholder={t('As shown on your HKID', '與 HKID 上一致')}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -134,7 +168,9 @@ export function RegistrationIndividualForm() {
               name="date_of_birth"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Date of birth</FormLabel>
+                  <FormLabel>
+                    <Tr en="Date of birth" zh="出生日期" />
+                  </FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -146,14 +182,21 @@ export function RegistrationIndividualForm() {
         </section>
 
         <section>
-          <SectionHeading kicker="Contact" title="How we reach you" />
+          <SectionHeading
+            kicker="Contact"
+            title="How we reach you"
+            kickerZh="聯絡"
+            titleZh="聯絡方式"
+          />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>
+                    <Tr en="Email" zh="電郵" />
+                  </FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="you@example.com" {...field} />
                   </FormControl>
@@ -166,7 +209,9 @@ export function RegistrationIndividualForm() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>
+                    <Tr en="Phone" zh="電話" />
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="+852 ..." {...field} />
                   </FormControl>
@@ -179,7 +224,9 @@ export function RegistrationIndividualForm() {
               name="address"
               render={({ field }) => (
                 <FormItem className="md:col-span-2">
-                  <FormLabel>Address (optional)</FormLabel>
+                  <FormLabel>
+                    <Tr en="Address (optional)" zh="地址（選填）" />
+                  </FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -191,14 +238,21 @@ export function RegistrationIndividualForm() {
         </section>
 
         <section>
-          <SectionHeading kicker="Security" title="Account password" />
+          <SectionHeading
+            kicker="Security"
+            title="Account password"
+            kickerZh="安全"
+            titleZh="帳戶密碼"
+          />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password</FormLabel>
+                  <FormLabel>
+                    <Tr en="Password" zh="密碼" />
+                  </FormLabel>
                   <FormControl>
                     <Input type="password" autoComplete="new-password" {...field} />
                   </FormControl>
@@ -211,7 +265,9 @@ export function RegistrationIndividualForm() {
               name="confirm_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm password</FormLabel>
+                  <FormLabel>
+                    <Tr en="Confirm password" zh="確認密碼" />
+                  </FormLabel>
                   <FormControl>
                     <Input type="password" autoComplete="new-password" {...field} />
                   </FormControl>
@@ -229,11 +285,11 @@ export function RegistrationIndividualForm() {
             className="nexus-pill-primary disabled:opacity-50"
           >
             {mutation.isPending ? (
-              'Creating account...'
+              <Tr en="Creating account..." zh="建立帳戶中..." />
             ) : (
               <>
                 <i className="ph ph-plus-circle text-base" aria-hidden="true" />
-                Create account
+                <Tr en="Create account" zh="建立帳戶" />
               </>
             )}
           </button>

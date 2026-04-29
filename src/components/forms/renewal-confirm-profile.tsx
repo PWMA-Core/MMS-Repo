@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { ACCOUNT_STATUS_LABELS } from '@/lib/constants/account-statuses'
+import {
+  ACCOUNT_STATUS_LABELS,
+  ACCOUNT_STATUS_LABELS_ZH,
+} from '@/lib/constants/account-statuses'
 import {
   LIFECYCLE_STATE_LABELS,
+  LIFECYCLE_STATE_LABELS_ZH,
   type LifecycleState,
 } from '@/lib/constants/lifecycle-states'
 import {
@@ -12,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Tr, useTr } from '@/components/ui/tr'
 
 /**
  * Profile-confirm gate per design spec. Members must reconfirm their
@@ -42,6 +47,7 @@ function Row({ label, value }: { label: string; value: string }) {
 
 export function RenewalConfirmProfile({ profile, onConfirm, onEditProfile }: Props) {
   const qc = useQueryClient()
+  const t = useTr()
   const [lifecycleState, setLifecycleState] = useState<LifecycleState>(
     profile.lifecycle_state ?? 'employee',
   )
@@ -50,27 +56,39 @@ export function RenewalConfirmProfile({ profile, onConfirm, onEditProfile }: Pro
     <section>
       <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
         <div>
-          <div className="label-small mb-1">Step 1</div>
-          <h2 className="title-medium">Confirm your profile</h2>
+          <div className="label-small mb-1">
+            <Tr en="Step 1" zh="第一步" />
+          </div>
+          <h2 className="title-medium">
+            <Tr en="Confirm your profile" zh="確認個人資料" />
+          </h2>
         </div>
         <span className="text-foreground/65 text-xs">
-          Critical fields need PWMA approval to change
+          <Tr
+            en="Critical fields need PWMA approval to change"
+            zh="受保護欄位需經 PWMA 批准方可修改"
+          />
         </span>
       </div>
 
       <div className="mb-12 flex flex-col">
-        <Row label="Legal name" value={profile.legal_name} />
-        <Row label="Email" value={profile.email} />
-        <Row label="Phone" value={profile.phone ?? '—'} />
-        <Row label="Address" value={profile.address ?? '—'} />
+        <Row label={t('Legal name', '法定姓名')} value={profile.legal_name} />
+        <Row label={t('Email', '電郵')} value={profile.email} />
+        <Row label={t('Phone', '電話')} value={profile.phone ?? '—'} />
+        <Row label={t('Address', '地址')} value={profile.address ?? '—'} />
         <Row
-          label="Account status"
-          value={ACCOUNT_STATUS_LABELS[profile.account_status]}
+          label={t('Account status', '帳戶狀態')}
+          value={t(
+            ACCOUNT_STATUS_LABELS[profile.account_status],
+            ACCOUNT_STATUS_LABELS_ZH[profile.account_status],
+          )}
         />
       </div>
 
       <div className="mb-12 max-w-md space-y-3">
-        <label className="label-small block">Current lifecycle state</label>
+        <label className="label-small block">
+          <Tr en="Current lifecycle state" zh="目前生命週期狀態" />
+        </label>
         <Select
           value={lifecycleState}
           onValueChange={(v) => setLifecycleState(v as LifecycleState)}
@@ -81,13 +99,16 @@ export function RenewalConfirmProfile({ profile, onConfirm, onEditProfile }: Pro
           <SelectContent>
             {(Object.keys(LIFECYCLE_STATE_LABELS) as LifecycleState[]).map((s) => (
               <SelectItem key={s} value={s}>
-                {LIFECYCLE_STATE_LABELS[s]}
+                <Tr en={LIFECYCLE_STATE_LABELS[s]} zh={LIFECYCLE_STATE_LABELS_ZH[s]} />
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <p className="text-foreground/50 text-xs leading-relaxed">
-          Members transition between Employee, Unemployed, and General public.
+          <Tr
+            en="Members transition between Employee, Unemployed, and General public."
+            zh="會員狀態可在在職、失業及一般公眾之間切換。"
+          />
         </p>
       </div>
 
@@ -101,11 +122,11 @@ export function RenewalConfirmProfile({ profile, onConfirm, onEditProfile }: Pro
           className="nexus-pill-primary"
         >
           <i className="ph ph-arrow-right text-base" aria-hidden="true" />
-          Confirm and continue
+          <Tr en="Confirm and continue" zh="確認並繼續" />
         </button>
         <button type="button" onClick={onEditProfile} className="nexus-pill-outline">
           <i className="ph ph-pencil-line text-base" aria-hidden="true" />
-          Edit profile first
+          <Tr en="Edit profile first" zh="先修改資料" />
         </button>
       </div>
     </section>
