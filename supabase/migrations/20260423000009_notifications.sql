@@ -4,6 +4,8 @@
 -- inserts are unrestricted to support anonymous flows (email verify
 -- pre-approval).
 
+SET search_path = public, extensions;
+
 CREATE TABLE notifications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     to_email CITEXT NOT NULL,

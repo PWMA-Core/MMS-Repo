@@ -2,6 +2,8 @@
 -- Tables are created now so relationships and types are stable; business
 -- logic (reminders, bulk renewals, OPT auto-fill) lands in Phase 4.
 
+SET search_path = public, extensions;
+
 -- Renewal period config. One row per calendar year.
 CREATE TABLE renewal_periods (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

@@ -4,6 +4,8 @@
 -- Wrap the cross-table check in a SECURITY DEFINER function so the inner
 -- queries bypass RLS, breaking the cycle.
 
+SET search_path = public, extensions;
+
 DROP POLICY IF EXISTS "profiles_firm_admin_read" ON profiles;
 
 CREATE OR REPLACE FUNCTION auth_can_read_firm_member(target_profile_id UUID)
