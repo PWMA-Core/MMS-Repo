@@ -356,6 +356,11 @@ export function DevNav() {
     ROUTE_SECTIONS[0]!.title,
   )
   const [resetArmed, setResetArmed] = useState(false)
+  // Tracks which story step the demo is "on right now". Set when the user
+  // clicks Run on a step (or via Cmd+→). Drives the top-left step indicator
+  // and the keyboard step advance.
+  const [activeStoryId, setActiveStoryId] = useState<string | null>(null)
+  const [activeStepIndex, setActiveStepIndex] = useState(-1)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -374,7 +379,13 @@ export function DevNav() {
     }
   }
 
-  function runStep(step: StoryStep) {
+  function runStoryStep(storyId: string, stepIdx: number) {
+    const story = STORIES.find((s) => s.id === storyId)
+    if (!story) return
+    if (stepIdx < 0 || stepIdx >= story.steps.length) return
+    const step = story.steps[stepIdx]!
+    setActiveStoryId(storyId)
+    setActiveStepIndex(stepIdx)
     if (step.role !== undefined) {
       if (step.role === null) {
         clearDemoSession()
@@ -394,6 +405,48 @@ export function DevNav() {
     setTimeout(() => navigate(target), 0)
   }
 
+  // Global keyboard shortcuts:
+  //   Cmd/Ctrl + J        toggle the Demo Console
+  //   Cmd/Ctrl + ArrowR   advance to next step in the active story
+  //   Cmd/Ctrl + ArrowL   go back to previous step
+  // Arrow shortcuts ignored while typing in a form field so they don't
+  // fight cursor navigation.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey
+      if (!mod) return
+      const key = e.key.toLowerCase()
+      const target = e.target as HTMLElement | null
+      const typing =
+        !!target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+
+      if (key === 'j') {
+        e.preventDefault()
+        setOpen((v) => !v)
+        return
+      }
+      if (typing) return
+      if (e.key === 'ArrowRight' && activeStoryId !== null) {
+        const story = STORIES.find((s) => s.id === activeStoryId)
+        if (story && activeStepIndex + 1 < story.steps.length) {
+          e.preventDefault()
+          runStoryStep(activeStoryId, activeStepIndex + 1)
+        }
+      } else if (e.key === 'ArrowLeft' && activeStoryId !== null) {
+        if (activeStepIndex > 0) {
+          e.preventDefault()
+          runStoryStep(activeStoryId, activeStepIndex - 1)
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStoryId, activeStepIndex])
+
   function go(path: string, autofill = false) {
     const target = autofill ? `${path}?demo=1` : path
     navigate(target)
@@ -405,8 +458,65 @@ export function DevNav() {
     return r ? t(r.label, r.zhLabel) : role
   }
 
+  // Resolve the active story + step for the top-left indicator pill.
+  const activeStory =
+    activeStoryId !== null ? STORIES.find((s) => s.id === activeStoryId) : null
+  const activeStep =
+    activeStory && activeStepIndex >= 0 ? activeStory.steps[activeStepIndex] : null
+  const activeStoryLetter = activeStory
+    ? String.fromCharCode(65 + STORIES.findIndex((s) => s.id === activeStory.id))
+    : ''
+  const canPrev = activeStoryId !== null && activeStepIndex > 0
+  const canNext =
+    activeStory !== null &&
+    activeStory !== undefined &&
+    activeStepIndex + 1 < activeStory.steps.length
+
   return (
     <>
+      {/* Active step indicator (top-left). Visible whenever a story step
+          has been started, regardless of whether the panel is open. */}
+      {activeStep && activeStory && (
+        <div
+          className="bg-background border-foreground/12 fixed top-4 left-4 z-[99] flex max-w-[480px] items-center gap-3 rounded-full border px-4 py-2 shadow-[0_2px_24px_-8px_rgba(22,32,64,0.12)]"
+          role="status"
+          aria-live="polite"
+        >
+          <span
+            className="bg-foreground inline-block h-2 w-2 shrink-0"
+            aria-hidden="true"
+          />
+          <span className="text-foreground/55 shrink-0 font-mono text-[10px] tracking-wide uppercase">
+            {t('Story', '故事')} {activeStoryLetter} · {activeStepIndex + 1}/
+            {activeStory.steps.length}
+          </span>
+          <span className="text-foreground/20 shrink-0">·</span>
+          <span className="text-foreground truncate text-xs font-medium tracking-tight">
+            {t(activeStep.label, activeStep.zhLabel)}
+          </span>
+          <div className="border-foreground/10 ml-1 flex shrink-0 items-center gap-0.5 border-l pl-2">
+            <button
+              type="button"
+              onClick={() => canPrev && runStoryStep(activeStoryId!, activeStepIndex - 1)}
+              disabled={!canPrev}
+              aria-label={t('Previous step', '上一步')}
+              className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-2 py-0.5 text-[11px] transition-colors disabled:opacity-30"
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={() => canNext && runStoryStep(activeStoryId!, activeStepIndex + 1)}
+              disabled={!canNext}
+              aria-label={t('Next step', '下一步')}
+              className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-2 py-0.5 text-[11px] transition-colors disabled:opacity-30"
+            >
+              ›
+            </button>
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         aria-label={
@@ -602,7 +712,7 @@ export function DevNav() {
                                     </p>
                                     <button
                                       type="button"
-                                      onClick={() => runStep(step)}
+                                      onClick={() => runStoryStep(story.id, sIdx)}
                                       className="bg-foreground text-background shrink-0 rounded-full px-3 py-1 text-[11px] font-semibold tracking-wide transition-opacity hover:opacity-90"
                                     >
                                       {t('Run', '執行')}
@@ -711,11 +821,19 @@ export function DevNav() {
             </section>
           )}
 
-          <footer className="text-foreground/55 border-foreground/10 border-t px-5 py-2.5 text-[10px]">
-            {t('Hidden in production.', '正式環境會隱藏。')}{' '}
-            <Link to="/" className="underline underline-offset-4">
-              {t('Go to landing', '前往首頁')}
-            </Link>
+          <footer className="text-foreground/55 border-foreground/10 flex items-center justify-between gap-2 border-t px-5 py-2.5 text-[10px]">
+            <span>
+              {t('Hidden in production.', '正式環境會隱藏。')}{' '}
+              <Link to="/" className="underline underline-offset-4">
+                {t('Go to landing', '前往首頁')}
+              </Link>
+            </span>
+            <span className="text-foreground/40 flex shrink-0 items-center gap-2 font-mono">
+              <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘J</kbd>
+              {t('toggle', '開關')}
+              <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘→</kbd>
+              {t('next', '下一步')}
+            </span>
           </footer>
         </aside>
       )}
