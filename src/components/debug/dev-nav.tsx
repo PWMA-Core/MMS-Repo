@@ -511,27 +511,30 @@ export function DevNav() {
     return false
   }
 
-  // Global keyboard shortcuts:
-  //   Cmd/Ctrl + J             toggle the Demo Console
-  //   Cmd/Ctrl + ArrowRight    next step in the active story
-  //   Cmd/Ctrl + ArrowLeft     previous step
-  //   Cmd/Ctrl + ArrowDown     jump to next story (run step 1)
-  //   Cmd/Ctrl + ArrowUp       jump to previous story (run step 1)
-  // Arrow shortcuts ignored while typing in a form field so they don't
-  // fight cursor navigation.
+  // Global keyboard shortcuts (plain keys — Cmd+arrow is intercepted by
+  // the browser on macOS for history navigation, so we use unmodified
+  // arrows + backtick like a slide remote).
+  //   `             toggle the Demo Console
+  //   ArrowRight    next sub-action (fill in place, then advance step)
+  //   ArrowLeft     previous sub-action (un-fill, then go back step)
+  //   ArrowDown     jump to next story (run step 1)
+  //   ArrowUp       jump to previous story (run step 1)
+  // All arrow shortcuts ignored while typing in a form field so they
+  // don't fight the cursor.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      const mod = e.metaKey || e.ctrlKey
-      if (!mod) return
-      const key = e.key.toLowerCase()
+      // Don't fire while a modifier other than Shift is held — leaves
+      // browser native shortcuts (Cmd+R reload, Cmd+T new tab, etc.) alone.
+      if (e.metaKey || e.ctrlKey || e.altKey) return
       const target = e.target as HTMLElement | null
       const typing =
         !!target &&
         (target.tagName === 'INPUT' ||
           target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT' ||
           target.isContentEditable)
 
-      if (key === 'j') {
+      if (e.key === '`' && !typing) {
         e.preventDefault()
         setOpen((v) => !v)
         return
@@ -546,7 +549,6 @@ export function DevNav() {
       } else if (e.key === 'ArrowLeft' && activeStoryId !== null) {
         if (retreat()) e.preventDefault()
       } else if (e.key === 'ArrowDown') {
-        // Next story — wraps from last to first. If no active story, start at A.
         const nextIdx = currentStoryIdx < 0 ? 0 : (currentStoryIdx + 1) % STORIES.length
         e.preventDefault()
         const nextStory = STORIES[nextIdx]
@@ -570,7 +572,7 @@ export function DevNav() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStoryId, activeStepIndex])
+  }, [activeStoryId, activeStepIndex, activeStepFilled])
 
   function go(path: string, autofill = false) {
     const target = autofill ? `${path}?demo=1` : path
@@ -680,7 +682,7 @@ export function DevNav() {
             <span className="text-foreground min-w-0 flex-1 text-xs font-medium tracking-tight">
               {t('Demo Console', '示範控制台')}
             </span>
-            <span className="text-foreground/40 shrink-0 font-mono text-[10px]">⌘J</span>
+            <span className="text-foreground/40 shrink-0 font-mono text-[10px]">`</span>
           </>
         )}
         <span
@@ -1005,13 +1007,13 @@ export function DevNav() {
               </Link>
             </span>
             <span className="text-foreground/40 flex shrink-0 items-center gap-1.5 font-mono">
-              <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘J</kbd>
+              <kbd className="border-foreground/15 rounded border px-1 py-0.5">`</kbd>
               {t('toggle', '開關')}
               <span className="text-foreground/15">·</span>
-              <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘→</kbd>
+              <kbd className="border-foreground/15 rounded border px-1 py-0.5">→</kbd>
               {t('step', '步驟')}
               <span className="text-foreground/15">·</span>
-              <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘↓</kbd>
+              <kbd className="border-foreground/15 rounded border px-1 py-0.5">↓</kbd>
               {t('story', '故事')}
             </span>
           </footer>

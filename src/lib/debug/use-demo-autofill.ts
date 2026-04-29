@@ -23,9 +23,15 @@ export function useDemoAutofill<TValues extends FieldValues>(
     if (demoFlag === '1') {
       form.reset(values)
     } else if (demoFlag === '0') {
-      // Reverse: reset back to the form's original empty defaults.
-      // Used by Cmd+← to "un-fill" an autofill step.
-      form.reset()
+      // Build an empty-shape clone of values so every keyed field is
+      // explicitly reset. form.reset() with no args has been observed
+      // to keep the last filled state in some setups.
+      const empty = Object.keys(values).reduce<Record<string, unknown>>((acc, k) => {
+        const v = (values as Record<string, unknown>)[k]
+        acc[k] = typeof v === 'string' ? '' : typeof v === 'number' ? 0 : null
+        return acc
+      }, {})
+      form.reset(empty as TValues)
     } else {
       return
     }
