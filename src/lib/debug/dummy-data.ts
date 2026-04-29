@@ -18,16 +18,20 @@ export const DEMO_PASSWORD = 'demo-password-123'
 export const DEMO_HKID = 'A1234563' // passes the checksum in hkid validator
 export const DEMO_FIRM_HKID = 'B2345670' // passes checksum for firm admin
 
+// IDs MUST match what the mock backend seeds in mock-client.ts.
+// useCurrentProfile() queries Supabase by auth_user_id, so the demo session's
+// fake user.id needs to find a real seeded profile or the page errors with
+// "profile not found".
 export const DEMO_PROFILES: Record<DemoRole, Profile> = {
   pwma_admin: {
-    id: 'demo-pwma-admin-00000000',
-    auth_user_id: 'demo-user-00000000',
-    hkid: 'Z9999999',
+    id: 'seed-profile-admin',
+    auth_user_id: 'seed-auth-admin',
+    hkid: 'A1234563',
     email: 'admin@pwma.test',
     legal_name: 'Demo PWMA Admin',
     date_of_birth: '1980-01-01',
     phone: '+85229999999',
-    address: 'PWMA Office, Central, HK',
+    address: 'PWMA Office, HK',
     role: 'pwma_admin',
     account_status: 'active',
     lifecycle_state: 'employee',
@@ -35,14 +39,14 @@ export const DEMO_PROFILES: Record<DemoRole, Profile> = {
     updated_at: new Date().toISOString(),
   },
   member_firm_admin: {
-    id: 'demo-firm-admin-00000000',
-    auth_user_id: 'demo-user-00000001',
-    hkid: DEMO_FIRM_HKID,
-    email: 'firm.admin@demo.test',
+    id: 'seed-profile-firm-admin',
+    auth_user_id: 'seed-auth-firm-admin',
+    hkid: 'C3456780',
+    email: 'firm.admin@hsbc.test',
     legal_name: 'Demo Firm Admin',
     date_of_birth: '1985-06-15',
     phone: '+85228888888',
-    address: 'Demo Bank HQ, Central, HK',
+    address: 'HSBC HQ, HK',
     role: 'member_firm_admin',
     account_status: 'active',
     lifecycle_state: 'employee',
@@ -50,14 +54,14 @@ export const DEMO_PROFILES: Record<DemoRole, Profile> = {
     updated_at: new Date().toISOString(),
   },
   individual_member: {
-    id: 'demo-individual-00000000',
-    auth_user_id: 'demo-user-00000002',
-    hkid: DEMO_HKID,
-    email: DEMO_EMAIL,
-    legal_name: 'Demo Individual Member',
-    date_of_birth: '1990-03-20',
+    id: 'seed-profile-member',
+    auth_user_id: 'seed-auth-member',
+    hkid: DEMO_FIRM_HKID,
+    email: 'member@pwma.test',
+    legal_name: 'Demo Member',
+    date_of_birth: '1990-05-05',
     phone: '+85212345678',
-    address: '1 Central Plaza, HK',
+    address: '1 Central, HK',
     role: 'individual_member',
     account_status: 'active',
     lifecycle_state: 'employee',
@@ -65,8 +69,8 @@ export const DEMO_PROFILES: Record<DemoRole, Profile> = {
     updated_at: new Date().toISOString(),
   },
   guest: {
-    id: 'demo-guest-00000000',
-    auth_user_id: 'demo-user-00000003',
+    id: 'seed-profile-guest',
+    auth_user_id: 'seed-auth-guest',
     hkid: 'GUEST-demo',
     email: 'guest@demo.test',
     legal_name: 'Demo Guest',

@@ -4,22 +4,6 @@ import { format } from 'date-fns'
 
 import { supabase } from '@/lib/supabase/client'
 import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
-import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 import { ROLE_LABELS } from '@/lib/constants/roles'
 import type { Database } from '@/types/database'
 
@@ -69,77 +53,109 @@ export function AdminApprovalsPage() {
     },
   })
 
+  const total = pending.data?.length ?? 0
+
   return (
-    <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-semibold">Approvals</h1>
-        <p className="text-muted-foreground text-sm">
-          Review new members waiting for PWMA approval.
-        </p>
+    <>
+      <header className="mb-16 flex items-end justify-between">
+        <div>
+          <div className="label-small mb-4">Queue</div>
+          <h1 className="title-huge">
+            Member
+            <br />
+            Approvals
+          </h1>
+        </div>
+        <div className="mb-2 flex gap-4">
+          <button type="button" className="nexus-pill-outline">
+            <i className="ph ph-arrows-clockwise" aria-hidden="true" />
+            Refresh
+          </button>
+        </div>
+      </header>
+
+      <div className="mb-20 grid grid-cols-12 gap-16">
+        <section className="col-span-7 flex gap-16">
+          <div className="flex flex-col">
+            <span className="label-small mb-2">Awaiting review</span>
+            <span className="text-5xl font-light tracking-tight">{total}</span>
+          </div>
+        </section>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pending PWMA approval</CardTitle>
-          <CardDescription>
-            {pending.isLoading
-              ? 'Loading...'
-              : `${pending.data?.length ?? 0} awaiting review`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {pending.isError && (
-            <p className="text-destructive text-sm">
-              Failed to load: {(pending.error as Error).message}
-            </p>
-          )}
-          {!pending.isLoading && !pending.data?.length && (
-            <p className="text-muted-foreground text-sm">No members awaiting approval.</p>
-          )}
-          {!!pending.data?.length && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Legal name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Requested</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pending.data.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>{p.legal_name}</TableCell>
-                    <TableCell>{p.email}</TableCell>
-                    <TableCell>{ROLE_LABELS[p.role]}</TableCell>
-                    <TableCell>
-                      {format(new Date(p.created_at), 'yyyy-MM-dd HH:mm')}
-                    </TableCell>
-                    <TableCell className="flex justify-end gap-2">
-                      <Button
-                        size="sm"
-                        onClick={() => decide.mutate({ row: p, approve: true })}
-                        disabled={decide.isPending}
-                      >
-                        Approve
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => decide.mutate({ row: p, approve: false })}
-                        disabled={decide.isPending}
-                      >
-                        Reject
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      <section className="mt-auto">
+        <div className="list-grid border-foreground text-foreground/65 mb-2 border-b pb-4">
+          <span className="label-small">Member details</span>
+          <span className="label-small">Role</span>
+          <span className="label-small">Requested</span>
+          <span className="label-small">Status</span>
+          <span className="label-small text-right">Actions</span>
+        </div>
+
+        {pending.isError && (
+          <p className="text-destructive py-8 text-sm">
+            Failed to load: {(pending.error as Error).message}
+          </p>
+        )}
+        {pending.isLoading && (
+          <p className="text-foreground/65 py-8 text-sm">Loading...</p>
+        )}
+        {!pending.isLoading && total === 0 && (
+          <p className="text-foreground/65 py-8 text-sm">No members awaiting approval.</p>
+        )}
+
+        {pending.data?.map((p, idx) => {
+          const last = idx === total - 1
+          return (
+            <div
+              key={p.id}
+              className={`list-grid py-5 ${last ? 'border-b-0' : 'border-foreground/10 border-b'} group hover:bg-foreground/[0.03] relative -mx-4 px-4 transition-colors`}
+            >
+              <div className="flex flex-col gap-1 pl-4">
+                <span className="text-[1.1rem] font-medium tracking-tight">
+                  {p.legal_name}
+                </span>
+                <span className="text-foreground/65 font-mono text-xs">{p.email}</span>
+              </div>
+              <div>
+                <span className="value-medium">{ROLE_LABELS[p.role]}</span>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-[0.95rem]">
+                  {format(new Date(p.created_at), 'yyyy-MM-dd')}
+                </span>
+                <span className="text-foreground/50 text-xs">
+                  {format(new Date(p.created_at), 'HH:mm')}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="status-square status-hatched" />
+                <span className="text-foreground/80 text-[0.9rem] tracking-wide">
+                  Pending
+                </span>
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => decide.mutate({ row: p, approve: true })}
+                  disabled={decide.isPending}
+                  className="bg-foreground text-background rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-opacity hover:opacity-90 disabled:opacity-50"
+                >
+                  Approve
+                </button>
+                <button
+                  type="button"
+                  onClick={() => decide.mutate({ row: p, approve: false })}
+                  disabled={decide.isPending}
+                  className="border-foreground/25 hover:border-foreground rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide transition-colors disabled:opacity-50"
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </section>
+    </>
   )
 }

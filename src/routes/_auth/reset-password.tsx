@@ -9,15 +9,7 @@ import { supabase } from '@/lib/supabase/client'
 import { mapAuthError } from '@/lib/auth/error-messages'
 import { useDemoAutofill } from '@/lib/debug/use-demo-autofill'
 import { DEMO_RESET } from '@/lib/debug/dummy-data'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -52,42 +44,61 @@ export function ResetPasswordPage() {
 
   return (
     <div className="w-full max-w-md">
-      <Card>
-        <CardHeader>
-          <CardTitle>Reset password</CardTitle>
-          <CardDescription>Enter your email to receive a reset link.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-              className="space-y-4"
+      <div className="mb-10">
+        <div className="label-small mb-3">Recovery</div>
+        <h1 className="title-large">Reset password</h1>
+        <p className="text-foreground/65 mt-3 text-sm">
+          Enter your email to receive a reset link.
+        </p>
+      </div>
+
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+          className="space-y-6"
+        >
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="label-small">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    autoComplete="email"
+                    className="border-foreground/15 h-12 rounded-xl text-base"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="bg-foreground text-background flex w-full items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold tracking-wide transition-opacity hover:opacity-90 disabled:opacity-50"
+          >
+            {mutation.isPending ? (
+              'Sending...'
+            ) : (
+              <>
+                <i className="ph ph-paper-plane-tilt text-base" aria-hidden="true" />
+                Send reset link
+              </>
+            )}
+          </button>
+          <p className="pt-2 text-center text-sm">
+            <Link
+              to="/sign-in"
+              className="text-foreground/65 hover:text-foreground underline underline-offset-4"
             >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input type="email" autoComplete="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={mutation.isPending}>
-                {mutation.isPending ? 'Sending...' : 'Send reset link'}
-              </Button>
-              <p className="text-muted-foreground text-center text-sm">
-                <Link to="/sign-in" className="underline underline-offset-4">
-                  Back to sign-in
-                </Link>
-              </p>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+              Back to sign-in
+            </Link>
+          </p>
+        </form>
+      </Form>
     </div>
   )
 }

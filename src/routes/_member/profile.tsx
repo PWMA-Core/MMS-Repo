@@ -17,15 +17,7 @@ import {
 } from '@/lib/validators/profile'
 import { ACCOUNT_STATUS_LABELS } from '@/lib/constants/account-statuses'
 import { ROLE_LABELS } from '@/lib/constants/roles'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -55,35 +47,62 @@ export function MemberProfilePage() {
   const { data: profile, isLoading } = useCurrentProfile()
 
   if (isLoading) {
-    return <p className="text-muted-foreground text-sm">Loading profile...</p>
+    return <div className="text-foreground/65 py-12 text-sm">Loading profile...</div>
   }
   if (!profile) {
     return (
-      <p className="text-muted-foreground text-sm">
-        Profile not found. Your registration may still be provisioning.
-      </p>
+      <div className="max-w-md py-12">
+        <div className="label-small mb-3">Notice</div>
+        <h2 className="title-medium mb-3">Profile not yet provisioned</h2>
+        <p className="text-foreground/65 text-sm">
+          Your registration may still be processing. Refresh the page in a moment, or
+          contact PWMA admin if this persists.
+        </p>
+      </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">My profile</h1>
-        <p className="text-muted-foreground text-sm">
-          Account {ACCOUNT_STATUS_LABELS[profile.account_status]} ·{' '}
-          {ROLE_LABELS[profile.role]}
-        </p>
+    <>
+      <header className="mb-16 flex items-end justify-between">
+        <div>
+          <div className="label-small mb-4">Member</div>
+          <h1 className="title-huge">My profile</h1>
+        </div>
+      </header>
+
+      {/* Status block */}
+      <div className="mb-20 grid grid-cols-12 gap-16">
+        <section className="col-span-7 flex gap-16">
+          <div className="flex flex-col">
+            <span className="label-small mb-2">Account status</span>
+            <span className="text-3xl font-light tracking-tight">
+              {ACCOUNT_STATUS_LABELS[profile.account_status]}
+            </span>
+          </div>
+          <div className="flex flex-col">
+            <span className="label-small mb-2">Role</span>
+            <span className="text-foreground/65 text-3xl font-light tracking-tight">
+              {ROLE_LABELS[profile.role]}
+            </span>
+          </div>
+        </section>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Identity (protected)</CardTitle>
-          <CardDescription>
-            These fields cannot be changed without PWMA admin approval.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {CRITICAL_FIELDS.map((field) => {
+      {/* Critical fields (protected) */}
+      <section className="mb-16">
+        <div className="border-foreground mb-2 flex items-end justify-between border-b pb-4">
+          <div>
+            <div className="label-small mb-1">Identity (protected)</div>
+            <h2 className="title-medium">Critical fields</h2>
+          </div>
+          <span className="text-foreground/65 text-xs">
+            Changes need PWMA admin approval
+          </span>
+        </div>
+
+        <div className="flex flex-col">
+          {CRITICAL_FIELDS.map((field, idx) => {
             const value =
               field === 'date_of_birth'
                 ? (profile.date_of_birth ?? '—')
@@ -92,6 +111,7 @@ export function MemberProfilePage() {
                   : field === 'hkid'
                     ? profile.hkid
                     : profile.email
+            const last = idx === CRITICAL_FIELDS.length - 1
             return (
               <CriticalFieldRow
                 key={field}
@@ -100,14 +120,16 @@ export function MemberProfilePage() {
                 profileName={profile.legal_name}
                 field={field}
                 currentValue={value ?? ''}
+                last={last}
               />
             )
           })}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
+      {/* Non-critical contact */}
       <NonCriticalFieldsForm profile={profile} />
-    </div>
+    </>
   )
 }
 
@@ -117,12 +139,14 @@ function CriticalFieldRow({
   profileName,
   field,
   currentValue,
+  last,
 }: {
   profileId: string
   profileEmail: string
   profileName: string
   field: CriticalField
   currentValue: string
+  last?: boolean
 }) {
   const [open, setOpen] = useState(false)
   const qc = useQueryClient()
@@ -169,16 +193,25 @@ function CriticalFieldRow({
   })
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex-1">
-        <p className="text-sm font-medium">{CRITICAL_FIELD_LABELS[field]}</p>
-        <p className="text-muted-foreground text-sm">{currentValue}</p>
+    <div
+      className={`grid grid-cols-[200px_1fr_auto] items-center gap-6 py-5 ${last ? '' : 'border-foreground/10 border-b'}`}
+    >
+      <div>
+        <span className="label-small">{CRITICAL_FIELD_LABELS[field]}</span>
+      </div>
+      <div>
+        <span className="text-[1.05rem] font-medium tracking-tight">
+          {currentValue || '—'}
+        </span>
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <button
+            type="button"
+            className="border-foreground/25 hover:border-foreground rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide transition-colors"
+          >
             Request change
-          </Button>
+          </button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
@@ -197,9 +230,9 @@ function CriticalFieldRow({
                 name="new_value"
                 render={({ field: ff }) => (
                   <FormItem>
-                    <FormLabel>New value</FormLabel>
+                    <FormLabel className="label-small">New value</FormLabel>
                     <FormControl>
-                      <Input {...ff} />
+                      <Input className="h-11 rounded-xl" {...ff} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -210,21 +243,29 @@ function CriticalFieldRow({
                 name="note"
                 render={({ field: ff }) => (
                   <FormItem>
-                    <FormLabel>Reason (optional)</FormLabel>
+                    <FormLabel className="label-small">Reason (optional)</FormLabel>
                     <FormControl>
-                      <Input {...ff} />
+                      <Input className="h-11 rounded-xl" {...ff} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+              <DialogFooter className="gap-2">
+                <button
+                  type="button"
+                  onClick={() => setOpen(false)}
+                  className="nexus-pill-outline"
+                >
                   Cancel
-                </Button>
-                <Button type="submit" disabled={mutation.isPending}>
+                </button>
+                <button
+                  type="submit"
+                  disabled={mutation.isPending}
+                  className="nexus-pill-primary disabled:opacity-50"
+                >
                   {mutation.isPending ? 'Submitting...' : 'Submit request'}
-                </Button>
+                </button>
               </DialogFooter>
             </form>
           </Form>
@@ -273,49 +314,62 @@ function NonCriticalFieldsForm({
   })
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Contact details</CardTitle>
-        <CardDescription>You can edit these directly.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-            className="space-y-4"
+    <section>
+      <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
+        <div>
+          <div className="label-small mb-1">Editable</div>
+          <h2 className="title-medium">Contact details</h2>
+        </div>
+        <span className="text-foreground/65 text-xs">Saved instantly</span>
+      </div>
+
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+          className="max-w-2xl space-y-6"
+        >
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="label-small">Phone</FormLabel>
+                <FormControl>
+                  <Input
+                    className="border-foreground/15 h-12 rounded-xl text-base"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="label-small">Address</FormLabel>
+                <FormControl>
+                  <Input
+                    className="border-foreground/15 h-12 rounded-xl text-base"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="nexus-pill-primary disabled:opacity-50"
           >
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Saving...' : 'Save changes'}
-            </Button>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            <i className="ph ph-floppy-disk text-base" aria-hidden="true" />
+            {mutation.isPending ? 'Saving...' : 'Save changes'}
+          </button>
+        </form>
+      </Form>
+    </section>
   )
 }

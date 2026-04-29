@@ -13,7 +13,6 @@ import { mapAuthError } from '@/lib/auth/error-messages'
 import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
 import { useDemoAutofill } from '@/lib/debug/use-demo-autofill'
 import { DEMO_REGISTRATION_INDIVIDUAL } from '@/lib/debug/dummy-data'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Form,
@@ -24,6 +23,17 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+
+function SectionHeading({ kicker, title }: { kicker: string; title: string }) {
+  return (
+    <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
+      <div>
+        <div className="label-small mb-1">{kicker}</div>
+        <h2 className="title-medium">{title}</h2>
+      </div>
+    </div>
+  )
+}
 
 export function RegistrationIndividualForm() {
   const navigate = useNavigate()
@@ -83,126 +93,151 @@ export function RegistrationIndividualForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="hkid"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>HKID</FormLabel>
-              <FormControl>
-                <Input placeholder="A123456(3)" autoComplete="off" {...field} />
-              </FormControl>
-              <FormDescription>
-                Your HK Identity Card number including check digit. Cannot be changed
-                after registration without PWMA approval.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      <form
+        onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
+        className="space-y-12"
+      >
+        <section>
+          <SectionHeading kicker="Identity" title="Protected fields" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="hkid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>HKID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="A123456(3)" autoComplete="off" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Including check digit. Cannot be changed without PWMA approval.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legal_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Legal name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="As shown on your HKID" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="date_of_birth"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Date of birth</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="legal_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Legal name</FormLabel>
-              <FormControl>
-                <Input placeholder="As shown on your HKID" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <section>
+          <SectionHeading kicker="Contact" title="How we reach you" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="you@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+852 ..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Address (optional)</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="date_of_birth"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date of birth</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <section>
+          <SectionHeading kicker="Security" title="Account password" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirm_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm password</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <FormControl>
-                <Input placeholder="+852 ..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address (optional)</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="confirm_password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button type="submit" className="w-full" disabled={mutation.isPending}>
-          {mutation.isPending ? 'Creating account...' : 'Create account'}
-        </Button>
+        <div className="border-foreground/10 flex justify-end border-t pt-4">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="nexus-pill-primary disabled:opacity-50"
+          >
+            {mutation.isPending ? (
+              'Creating account...'
+            ) : (
+              <>
+                <i className="ph ph-plus-circle text-base" aria-hidden="true" />
+                Create account
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </Form>
   )

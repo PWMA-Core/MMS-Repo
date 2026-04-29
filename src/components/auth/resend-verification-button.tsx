@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 import { mapAuthError } from '@/lib/auth/error-messages'
 
 export function ResendVerificationButton({ email }: { email: string }) {
@@ -25,19 +24,18 @@ export function ResendVerificationButton({ email }: { email: string }) {
   }
 
   return (
-    <Button
+    <button
       type="button"
-      variant="ghost"
-      size="sm"
       onClick={onClick}
       disabled={pending || sent}
-      className="w-full"
+      className="border-foreground/15 text-foreground/65 hover:text-foreground hover:border-foreground/40 inline-flex w-full items-center justify-center gap-2 rounded-full border px-6 py-2.5 text-sm font-medium tracking-wide transition-colors disabled:opacity-50"
     >
+      <i className="ph ph-envelope-simple text-base" aria-hidden="true" />
       {sent
         ? 'Verification email sent'
         : pending
           ? 'Sending...'
           : 'Resend verification email'}
-    </Button>
+    </button>
   )
 }
