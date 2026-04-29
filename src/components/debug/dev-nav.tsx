@@ -534,9 +534,24 @@ export function DevNav() {
           target.tagName === 'SELECT' ||
           target.isContentEditable)
 
-      if (e.key === '`' && !typing) {
+      // Toggle: backtick (most layouts) or "\" (fallback). Match by
+      // physical-key `code` so it works regardless of US/UK/CN layout.
+      if (
+        !typing &&
+        (e.code === 'Backquote' ||
+          e.code === 'Backslash' ||
+          e.key === '`' ||
+          e.key === '\\')
+      ) {
         e.preventDefault()
         setOpen((v) => !v)
+        return
+      }
+      // Escape — close only (no toggle). Useful for "get this overlay
+      // out of the way" during a screen-share without flipping it back open.
+      if (e.key === 'Escape' && !typing && open) {
+        e.preventDefault()
+        setOpen(false)
         return
       }
       if (typing) return
@@ -572,7 +587,7 @@ export function DevNav() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStoryId, activeStepIndex, activeStepFilled])
+  }, [activeStoryId, activeStepIndex, activeStepFilled, open])
 
   function go(path: string, autofill = false) {
     const target = autofill ? `${path}?demo=1` : path
