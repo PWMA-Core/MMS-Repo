@@ -25,6 +25,8 @@ export function AdminApprovalsPage() {
       if (error) throw error
       return data ?? []
     },
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   })
 
   const decide = useMutation({

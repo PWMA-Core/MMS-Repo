@@ -28,6 +28,8 @@ export function AdminDashboardPage() {
         firmApps: firmApps.count ?? 0,
       }
     },
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   })
 
   const total =

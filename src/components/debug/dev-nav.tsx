@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Bug, X, ChevronDown, ChevronUp } from 'lucide-react'
+import { Bug, ChevronDown, ChevronUp } from 'lucide-react'
 
 import { cn } from '@/lib/utils/cn'
 import { Button } from '@/components/ui/button'
@@ -406,9 +406,11 @@ export function DevNav() {
   }
 
   // Global keyboard shortcuts:
-  //   Cmd/Ctrl + J        toggle the Demo Console
-  //   Cmd/Ctrl + ArrowR   advance to next step in the active story
-  //   Cmd/Ctrl + ArrowL   go back to previous step
+  //   Cmd/Ctrl + J             toggle the Demo Console
+  //   Cmd/Ctrl + ArrowRight    next step in the active story
+  //   Cmd/Ctrl + ArrowLeft     previous step
+  //   Cmd/Ctrl + ArrowDown     jump to next story (run step 1)
+  //   Cmd/Ctrl + ArrowUp       jump to previous story (run step 1)
   // Arrow shortcuts ignored while typing in a form field so they don't
   // fight cursor navigation.
   useEffect(() => {
@@ -429,8 +431,12 @@ export function DevNav() {
         return
       }
       if (typing) return
+
+      const currentStoryIdx =
+        activeStoryId !== null ? STORIES.findIndex((s) => s.id === activeStoryId) : -1
+
       if (e.key === 'ArrowRight' && activeStoryId !== null) {
-        const story = STORIES.find((s) => s.id === activeStoryId)
+        const story = STORIES[currentStoryIdx]
         if (story && activeStepIndex + 1 < story.steps.length) {
           e.preventDefault()
           runStoryStep(activeStoryId, activeStepIndex + 1)
@@ -439,6 +445,26 @@ export function DevNav() {
         if (activeStepIndex > 0) {
           e.preventDefault()
           runStoryStep(activeStoryId, activeStepIndex - 1)
+        }
+      } else if (e.key === 'ArrowDown') {
+        // Next story — wraps from last to first. If no active story, start at A.
+        const nextIdx = currentStoryIdx < 0 ? 0 : (currentStoryIdx + 1) % STORIES.length
+        e.preventDefault()
+        const nextStory = STORIES[nextIdx]
+        if (nextStory) {
+          setExpandedStory(nextStory.id)
+          runStoryStep(nextStory.id, 0)
+        }
+      } else if (e.key === 'ArrowUp') {
+        const prevIdx =
+          currentStoryIdx < 0
+            ? STORIES.length - 1
+            : (currentStoryIdx - 1 + STORIES.length) % STORIES.length
+        e.preventDefault()
+        const prevStory = STORIES[prevIdx]
+        if (prevStory) {
+          setExpandedStory(prevStory.id)
+          runStoryStep(prevStory.id, 0)
         }
       }
     }
@@ -473,71 +499,97 @@ export function DevNav() {
     activeStepIndex + 1 < activeStory.steps.length
 
   return (
-    <>
-      {/* Active step indicator (top-left). Visible whenever a story step
-          has been started, regardless of whether the panel is open. */}
-      {activeStep && activeStory && (
-        <div
-          className="bg-background border-foreground/12 fixed top-4 left-4 z-[99] flex max-w-[480px] items-center gap-3 rounded-full border px-4 py-2 shadow-[0_2px_24px_-8px_rgba(22,32,64,0.12)]"
-          role="status"
-          aria-live="polite"
-        >
-          <span
-            className="bg-foreground inline-block h-2 w-2 shrink-0"
-            aria-hidden="true"
-          />
-          <span className="text-foreground/55 shrink-0 font-mono text-[10px] tracking-wide uppercase">
-            {t('Story', '故事')} {activeStoryLetter} · {activeStepIndex + 1}/
-            {activeStory.steps.length}
-          </span>
-          <span className="text-foreground/20 shrink-0">·</span>
-          <span className="text-foreground truncate text-xs font-medium tracking-tight">
-            {t(activeStep.label, activeStep.zhLabel)}
-          </span>
-          <div className="border-foreground/10 ml-1 flex shrink-0 items-center gap-0.5 border-l pl-2">
-            <button
-              type="button"
-              onClick={() => canPrev && runStoryStep(activeStoryId!, activeStepIndex - 1)}
-              disabled={!canPrev}
-              aria-label={t('Previous step', '上一步')}
-              className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-2 py-0.5 text-[11px] transition-colors disabled:opacity-30"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              onClick={() => canNext && runStoryStep(activeStoryId!, activeStepIndex + 1)}
-              disabled={!canNext}
-              aria-label={t('Next step', '下一步')}
-              className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-2 py-0.5 text-[11px] transition-colors disabled:opacity-30"
-            >
-              ›
-            </button>
-          </div>
-        </div>
-      )}
-
-      <button
-        type="button"
+    <div className="fixed top-4 left-4 z-[100] flex max-h-[calc(100vh-2rem)] w-[420px] flex-col gap-2">
+      {/* Toggle bar — always visible. Doubles as the "active step" indicator
+          when a story step is running. Click anywhere except the inner
+          buttons to expand/collapse the panel. */}
+      <div
+        className="bg-background border-foreground/12 group hover:bg-foreground/[0.02] flex shrink-0 cursor-pointer items-center gap-2 rounded-full border px-3 py-2 shadow-[0_2px_24px_-8px_rgba(22,32,64,0.12)] transition-colors"
+        role="button"
+        tabIndex={0}
         aria-label={
-          open ? t('Close DevNav', '關閉示範控制台') : t('Open DevNav', '開啟示範控制台')
-        }
-        onClick={() => setOpen((v) => !v)}
-        className={cn(
-          'fixed right-4 bottom-4 z-[100] flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition-colors',
           open
-            ? 'bg-destructive text-destructive-foreground'
-            : 'bg-primary text-primary-foreground hover:bg-primary/90',
-        )}
+            ? t('Collapse Demo Console', '收起示範控制台')
+            : t('Expand Demo Console', '展開示範控制台')
+        }
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setOpen((v) => !v)
+          }
+        }}
       >
-        {open ? <X className="h-5 w-5" /> : <Bug className="h-5 w-5" />}
-      </button>
+        {activeStep && activeStory ? (
+          <>
+            <span
+              className="bg-foreground ml-1 inline-block h-2 w-2 shrink-0"
+              aria-hidden="true"
+            />
+            <span className="text-foreground/55 shrink-0 font-mono text-[10px] tracking-wide uppercase">
+              {t('Story', '故事')} {activeStoryLetter} · {activeStepIndex + 1}/
+              {activeStory.steps.length}
+            </span>
+            <span className="text-foreground/20 shrink-0">·</span>
+            <span className="text-foreground min-w-0 flex-1 truncate text-xs font-medium tracking-tight">
+              {t(activeStep.label, activeStep.zhLabel)}
+            </span>
+            <div className="border-foreground/10 flex shrink-0 items-center gap-0.5 border-l pl-1.5">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (canPrev) runStoryStep(activeStoryId!, activeStepIndex - 1)
+                }}
+                disabled={!canPrev}
+                aria-label={t('Previous step', '上一步')}
+                className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-1.5 py-0.5 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (canNext) runStoryStep(activeStoryId!, activeStepIndex + 1)
+                }}
+                disabled={!canNext}
+                aria-label={t('Next step', '下一步')}
+                className="text-foreground/55 hover:text-foreground hover:bg-foreground/5 rounded-full px-1.5 py-0.5 text-[11px] transition-colors disabled:cursor-not-allowed disabled:opacity-30"
+              >
+                ›
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <span
+              className="bg-foreground text-background ml-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+              aria-hidden="true"
+            >
+              <Bug className="h-3 w-3" />
+            </span>
+            <span className="text-foreground min-w-0 flex-1 text-xs font-medium tracking-tight">
+              {t('Demo Console', '示範控制台')}
+            </span>
+            <span className="text-foreground/40 shrink-0 font-mono text-[10px]">⌘J</span>
+          </>
+        )}
+        <span
+          className="text-foreground/40 ml-0.5 shrink-0 transition-transform"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          aria-hidden="true"
+        >
+          <ChevronDown className="h-3.5 w-3.5" />
+        </span>
+      </div>
 
       {open && (
         <aside
           role="dialog"
           aria-label={t('Demo Console', '示範控制台')}
-          className="bg-background border-foreground/10 fixed right-4 bottom-20 z-[100] flex max-h-[85vh] w-[420px] flex-col overflow-hidden rounded-2xl border shadow-2xl"
+          className="bg-background border-foreground/10 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border shadow-2xl"
         >
           <header className="border-foreground/10 flex items-center justify-between border-b px-5 py-4">
             <div>
@@ -828,15 +880,19 @@ export function DevNav() {
                 {t('Go to landing', '前往首頁')}
               </Link>
             </span>
-            <span className="text-foreground/40 flex shrink-0 items-center gap-2 font-mono">
+            <span className="text-foreground/40 flex shrink-0 items-center gap-1.5 font-mono">
               <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘J</kbd>
               {t('toggle', '開關')}
+              <span className="text-foreground/15">·</span>
               <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘→</kbd>
-              {t('next', '下一步')}
+              {t('step', '步驟')}
+              <span className="text-foreground/15">·</span>
+              <kbd className="border-foreground/15 rounded border px-1 py-0.5">⌘↓</kbd>
+              {t('story', '故事')}
             </span>
           </footer>
         </aside>
       )}
-    </>
+    </div>
   )
 }

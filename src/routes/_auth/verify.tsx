@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Tr } from '@/components/ui/tr'
+import { isMockSupabase } from '@/lib/supabase/client'
 
 export function VerifyPage() {
   return (
@@ -14,7 +15,30 @@ export function VerifyPage() {
         <p className="text-foreground/65 mt-3 text-sm leading-relaxed">
           <Tr
             en="We sent a verification link to your inbox. Click it to confirm your account, then wait for PWMA to approve your registration."
-            zh="我們已發送驗證連結至你嘅電郵信箱。點擊連結確認帳戶後，請等待 PWMA 審批你嘅申請。"
+            zh="我哋已將核實連結發到你嘅電郵信箱。點擊後確認帳戶，再等 PWMA 批核你嘅申請。"
+          />
+        </p>
+      </div>
+
+      {/* Status — clear "submitted, in queue" signal so the demo arc reads
+          as complete without a real email round-trip. */}
+      <div className="border-foreground bg-foreground/[0.02] mb-6 rounded-2xl border p-5">
+        <div className="mb-3 flex items-center gap-3">
+          <span className="status-square status-solid h-3 w-3" />
+          <span className="label-small">
+            <Tr en="Submitted" zh="已提交" />
+          </span>
+        </div>
+        <p className="text-sm font-medium tracking-tight">
+          <Tr
+            en="Your registration is in PWMA's review queue."
+            zh="你嘅註冊申請已交到 PWMA 嘅審批佇列。"
+          />
+        </p>
+        <p className="text-foreground/65 mt-1 text-xs leading-relaxed">
+          <Tr
+            en="Email auto-confirmed in this demo. In production, you'd click the link in the email to confirm before review begins."
+            zh="此示範環境會自動確認電郵。實際運行時，你需要點擊電郵連結確認後，PWMA 先會開始審批。"
           />
         </p>
       </div>
@@ -35,6 +59,15 @@ export function VerifyPage() {
           </div>
         </div>
       </div>
+
+      {isMockSupabase && (
+        <p className="text-foreground/40 mb-6 text-center font-mono text-[10px]">
+          <Tr
+            en="Demo mode · email auto-confirmed · admin review pending"
+            zh="示範模式 · 電郵自動確認 · 等待管理員審批"
+          />
+        </p>
+      )}
 
       <p className="text-center text-sm">
         <Link

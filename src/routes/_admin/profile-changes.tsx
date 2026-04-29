@@ -28,6 +28,8 @@ export function AdminProfileChangesPage() {
       if (error) throw error
       return (data ?? []) as unknown as ChangeRequestWithProfile[]
     },
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   })
 
   const decide = useMutation({
