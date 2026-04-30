@@ -1,13 +1,12 @@
-import { Outlet, Navigate } from 'react-router-dom'
+import { Navigate } from 'react-router-dom'
 import { useSessionStore } from '@/stores/session-store'
 import { useCurrentProfile } from '@/hooks/use-user'
-import { Header } from '@/components/layout/header'
-import { Footer } from '@/components/layout/footer'
-import { SideNav } from '@/components/layout/nav'
+import { AppShell } from '@/components/layout/app-shell'
 
 const memberNavItems = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/profile', label: 'Profile' },
+  { to: '/dashboard', label: 'Dashboard', zh: '總覽', icon: 'squares-four' },
+  { to: '/profile', label: 'Profile', zh: '個人資料', icon: 'user' },
+  { to: '/renewal', label: 'Renewal', zh: '會籍續期', icon: 'arrows-clockwise' },
 ]
 
 export function MemberLayout() {
@@ -16,7 +15,7 @@ export function MemberLayout() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center text-sm text-muted-foreground">
+      <div className="text-foreground/65 flex min-h-screen items-center justify-center text-sm">
         Loading...
       </div>
     )
@@ -30,16 +29,9 @@ export function MemberLayout() {
     return <Navigate to="/admin/dashboard" replace />
   }
 
-  return (
-    <div className="flex min-h-screen flex-col">
-      <Header />
-      <div className="grid flex-1 grid-cols-[200px_1fr]">
-        <SideNav items={memberNavItems} />
-        <main className="p-6">
-          <Outlet />
-        </main>
-      </div>
-      <Footer />
-    </div>
-  )
+  if (profileQuery.data?.role === 'member_firm_admin') {
+    return <Navigate to="/firm/dashboard" replace />
+  }
+
+  return <AppShell navItems={memberNavItems} brand="PWMA Member" />
 }

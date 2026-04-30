@@ -9,7 +9,10 @@ import {
   type RegisterIndividualInput,
 } from '@/lib/validators/registration'
 import { supabase } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
+import { mapAuthError } from '@/lib/auth/error-messages'
+import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
+import { useDemoAutofill } from '@/lib/debug/use-demo-autofill'
+import { DEMO_REGISTRATION_INDIVIDUAL } from '@/lib/debug/dummy-data'
 import { Input } from '@/components/ui/input'
 import {
   Form,
@@ -20,9 +23,36 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Tr, useTr } from '@/components/ui/tr'
+
+function SectionHeading({
+  kicker,
+  title,
+  kickerZh,
+  titleZh,
+}: {
+  kicker: string
+  title: string
+  kickerZh: string
+  titleZh: string
+}) {
+  return (
+    <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
+      <div>
+        <div className="label-small mb-1">
+          <Tr en={kicker} zh={kickerZh} />
+        </div>
+        <h2 className="title-medium">
+          <Tr en={title} zh={titleZh} />
+        </h2>
+      </div>
+    </div>
+  )
+}
 
 export function RegistrationIndividualForm() {
   const navigate = useNavigate()
+  const t = useTr()
 
   const form = useForm<RegisterIndividualInput>({
     resolver: zodResolver(registerIndividualSchema),
@@ -37,6 +67,7 @@ export function RegistrationIndividualForm() {
       confirm_password: '',
     },
   })
+  useDemoAutofill(form, DEMO_REGISTRATION_INDIVIDUAL)
 
   const mutation = useMutation({
     mutationFn: async (input: RegisterIndividualInput) => {
@@ -45,38 +76,40 @@ export function RegistrationIndividualForm() {
         password: input.password,
         options: {
           emailRedirectTo: `${import.meta.env.VITE_PUBLIC_URL ?? window.location.origin}/auth/callback`,
+          data: {
+            hkid: input.hkid,
+            legal_name: input.legal_name,
+            date_of_birth: input.date_of_birth,
+            phone: input.phone,
+            address: input.address || null,
+            role: 'individual_member',
+          },
         },
       })
       if (authError) throw authError
 
-      const { error: profileError } = await supabase.from('profiles').insert({
-        auth_user_id: auth.user?.id ?? null,
-        hkid: input.hkid,
-        email: input.email,
-        legal_name: input.legal_name,
-        date_of_birth: input.date_of_birth,
-        phone: input.phone,
-        address: input.address || null,
-        role: 'individual_member',
-        account_status: 'pending_email_verify',
-      })
-      if (profileError) throw profileError
-
       return auth
     },
-    onSuccess: () => {
-      toast.success('Account created. Check your email to verify.')
+    onSuccess: (_data, input) => {
+      toast.success(
+        t(
+          'Account created. Check your email to verify.',
+          '帳戶已建立，請查閱電郵進行驗證。',
+        ),
+      )
+      dispatchNotificationAsync({
+        to_email: input.email,
+        template_key: 'registration_received',
+        payload: {
+          legal_name: input.legal_name,
+          role: 'individual_member',
+        },
+      })
       navigate('/verify')
     },
     onError: (error: Error) => {
-      const msg = error.message.toLowerCase()
-      if (msg.includes('duplicate') && msg.includes('hkid')) {
-        toast.error('HKID already registered. Sign in or contact support.')
-      } else if (msg.includes('duplicate') && msg.includes('email')) {
-        toast.error('Email already registered. Sign in or reset password.')
-      } else {
-        toast.error(error.message || 'Registration failed')
-      }
+      const f = mapAuthError(error)
+      toast.error(t(f.message, f.messageZh))
     },
   })
 
@@ -84,131 +117,184 @@ export function RegistrationIndividualForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((v) => mutation.mutate(v))}
-        className="space-y-4"
+        className="space-y-12"
       >
-        <FormField
-          control={form.control}
-          name="hkid"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>HKID</FormLabel>
-              <FormControl>
-                <Input placeholder="A123456(3)" autoComplete="off" {...field} />
-              </FormControl>
-              <FormDescription>
-                Your HK Identity Card number including check digit. Cannot be
-                changed after registration without PWMA approval.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <section>
+          <SectionHeading
+            kicker="Identity"
+            title="Protected fields"
+            kickerZh="身份"
+            titleZh="受保護資料"
+          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="hkid"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>HKID</FormLabel>
+                  <FormControl>
+                    <Input placeholder="A123456(3)" autoComplete="off" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    <Tr
+                      en="Including check digit. Cannot be changed without PWMA approval."
+                      zh="請包括核對號碼。如需修改，須經 PWMA 批准。"
+                    />
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legal_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <Tr en="Legal name" zh="法定姓名" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('As shown on your HKID', '與 HKID 上一致')}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="date_of_birth"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>
+                    <Tr en="Date of birth" zh="出生日期" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="legal_name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Legal name</FormLabel>
-              <FormControl>
-                <Input placeholder="As shown on your HKID" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <section>
+          <SectionHeading
+            kicker="Contact"
+            title="How we reach you"
+            kickerZh="聯絡"
+            titleZh="聯絡方式"
+          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <Tr en="Email" zh="電郵" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="you@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <Tr en="Phone" zh="電話" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="+852 ..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="address"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>
+                    <Tr en="Address (optional)" zh="地址（選填）" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="date_of_birth"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date of birth</FormLabel>
-              <FormControl>
-                <Input type="date" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <section>
+          <SectionHeading
+            kicker="Security"
+            title="Account password"
+            kickerZh="安全"
+            titleZh="帳戶密碼"
+          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <Tr en="Password" zh="密碼" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirm_password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    <Tr en="Confirm password" zh="確認密碼" />
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </section>
 
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input type="email" placeholder="you@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone</FormLabel>
-              <FormControl>
-                <Input placeholder="+852 ..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Address (optional)</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="confirm_password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Confirm password</FormLabel>
-              <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={mutation.isPending}
-        >
-          {mutation.isPending ? 'Creating account...' : 'Create account'}
-        </Button>
+        <div className="border-foreground/10 flex justify-end border-t pt-4">
+          <button
+            type="submit"
+            disabled={mutation.isPending}
+            className="nexus-pill-primary disabled:opacity-50"
+          >
+            {mutation.isPending ? (
+              <Tr en="Creating account..." zh="建立帳戶中..." />
+            ) : (
+              <>
+                <i className="ph ph-plus-circle text-base" aria-hidden="true" />
+                <Tr en="Create account" zh="建立帳戶" />
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </Form>
   )

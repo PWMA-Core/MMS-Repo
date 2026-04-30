@@ -12,3 +12,10 @@ export const ROLE_LABELS: Record<Role, string> = {
   individual_member: 'Individual Member',
   guest: 'Guest',
 }
+
+export const ROLE_LABELS_ZH: Record<Role, string> = {
+  pwma_admin: 'PWMA 管理員',
+  member_firm_admin: '機構管理員',
+  individual_member: '個人會員',
+  guest: '訪客',
+}
