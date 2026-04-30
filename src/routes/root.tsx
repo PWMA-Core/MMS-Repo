@@ -8,7 +8,7 @@ export function Root() {
   return (
     <>
       <Outlet />
-      <Toaster richColors position="top-right" />
+      <Toaster position="top-right" />
       {import.meta.env.VITE_DISABLE_DEVNAV !== 'true' && <DevNav />}
     </>
   )

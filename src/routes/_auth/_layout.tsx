@@ -1,11 +1,18 @@
-import { Outlet, Link, Navigate } from 'react-router-dom'
+import { Outlet, Link, Navigate, useLocation } from 'react-router-dom'
 import { useSessionStore } from '@/stores/session-store'
 import { LanguageSwitcher } from '@/components/ui/language-switcher'
 
+// Paths under AuthLayout that an authenticated user is allowed to view
+// (e.g. immediately after sign-up, before admin approval). Without this
+// allow-list, the post-signup navigate('/verify') gets redirected to
+// /dashboard before the verify page can render.
+const ALLOW_AUTHENTICATED = new Set(['/verify', '/verify/confirmed', '/auth/callback'])
+
 export function AuthLayout() {
   const status = useSessionStore((s) => s.status)
+  const location = useLocation()
 
-  if (status === 'authenticated') {
+  if (status === 'authenticated' && !ALLOW_AUTHENTICATED.has(location.pathname)) {
     return <Navigate to="/dashboard" replace />
   }
 

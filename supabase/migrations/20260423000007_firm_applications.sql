@@ -3,6 +3,10 @@
 -- Director sign-off chain currently modelled as 3-sequential, pending
 -- stakeholder clarification.
 
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "citext";
+SET search_path = public, extensions;
+
 CREATE TABLE firm_applications (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     firm_id UUID REFERENCES member_firms(id) ON DELETE SET NULL,

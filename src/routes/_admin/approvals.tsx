@@ -4,13 +4,15 @@ import { format } from 'date-fns'
 
 import { supabase } from '@/lib/supabase/client'
 import { dispatchNotificationAsync } from '@/lib/notifications/dispatch'
-import { ROLE_LABELS } from '@/lib/constants/roles'
+import { ROLE_LABELS, ROLE_LABELS_ZH } from '@/lib/constants/roles'
 import type { Database } from '@/types/database'
+import { Tr, useTr } from '@/components/ui/tr'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
 export function AdminApprovalsPage() {
   const qc = useQueryClient()
+  const t = useTr()
 
   const pending = useQuery<Profile[]>({
     queryKey: ['admin', 'pending-approvals'],
@@ -23,6 +25,8 @@ export function AdminApprovalsPage() {
       if (error) throw error
       return data ?? []
     },
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   })
 
   const decide = useMutation({
@@ -36,7 +40,11 @@ export function AdminApprovalsPage() {
       if (error) throw error
     },
     onSuccess: (_data, variables) => {
-      toast.success(variables.approve ? 'Member approved' : 'Member rejected')
+      toast.success(
+        variables.approve
+          ? t('Member approved', '會員已批准')
+          : t('Member rejected', '會員已拒絕'),
+      )
       dispatchNotificationAsync({
         to_email: variables.row.email,
         to_profile_id: variables.row.id,
@@ -49,7 +57,7 @@ export function AdminApprovalsPage() {
       qc.invalidateQueries({ queryKey: ['admin', 'pending-approvals'] })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Action failed')
+      toast.error(error.message || t('Action failed', '操作失敗'))
     },
   })
 
@@ -59,17 +67,32 @@ export function AdminApprovalsPage() {
     <>
       <header className="mb-16 flex items-end justify-between">
         <div>
-          <div className="label-small mb-4">Queue</div>
+          <div className="label-small mb-4">
+            <Tr en="Queue" zh="佇列" />
+          </div>
           <h1 className="title-huge">
-            Member
-            <br />
-            Approvals
+            <Tr
+              en={
+                <>
+                  Member
+                  <br />
+                  Approvals
+                </>
+              }
+              zh={
+                <>
+                  會員
+                  <br />
+                  審批
+                </>
+              }
+            />
           </h1>
         </div>
         <div className="mb-2 flex gap-4">
           <button type="button" className="nexus-pill-outline">
             <i className="ph ph-arrows-clockwise" aria-hidden="true" />
-            Refresh
+            <Tr en="Refresh" zh="重新整理" />
           </button>
         </div>
       </header>
@@ -77,7 +100,9 @@ export function AdminApprovalsPage() {
       <div className="mb-20 grid grid-cols-12 gap-16">
         <section className="col-span-7 flex gap-16">
           <div className="flex flex-col">
-            <span className="label-small mb-2">Awaiting review</span>
+            <span className="label-small mb-2">
+              <Tr en="Awaiting review" zh="待審核" />
+            </span>
             <span className="text-5xl font-light tracking-tight">{total}</span>
           </div>
         </section>
@@ -85,23 +110,37 @@ export function AdminApprovalsPage() {
 
       <section className="mt-auto">
         <div className="list-grid border-foreground text-foreground/65 mb-2 border-b pb-4">
-          <span className="label-small">Member details</span>
-          <span className="label-small">Role</span>
-          <span className="label-small">Requested</span>
-          <span className="label-small">Status</span>
-          <span className="label-small text-right">Actions</span>
+          <span className="label-small">
+            <Tr en="Member details" zh="會員資料" />
+          </span>
+          <span className="label-small">
+            <Tr en="Role" zh="角色" />
+          </span>
+          <span className="label-small">
+            <Tr en="Requested" zh="申請日期" />
+          </span>
+          <span className="label-small">
+            <Tr en="Status" zh="狀態" />
+          </span>
+          <span className="label-small text-right">
+            <Tr en="Actions" zh="操作" />
+          </span>
         </div>
 
         {pending.isError && (
           <p className="text-destructive py-8 text-sm">
-            Failed to load: {(pending.error as Error).message}
+            {t('Failed to load:', '載入失敗：')} {(pending.error as Error).message}
           </p>
         )}
         {pending.isLoading && (
-          <p className="text-foreground/65 py-8 text-sm">Loading...</p>
+          <p className="text-foreground/65 py-8 text-sm">
+            <Tr en="Loading..." zh="載入中..." />
+          </p>
         )}
         {!pending.isLoading && total === 0 && (
-          <p className="text-foreground/65 py-8 text-sm">No members awaiting approval.</p>
+          <p className="text-foreground/65 py-8 text-sm">
+            <Tr en="No members awaiting approval." zh="目前沒有待審批的會員。" />
+          </p>
         )}
 
         {pending.data?.map((p, idx) => {
@@ -118,7 +157,9 @@ export function AdminApprovalsPage() {
                 <span className="text-foreground/65 font-mono text-xs">{p.email}</span>
               </div>
               <div>
-                <span className="value-medium">{ROLE_LABELS[p.role]}</span>
+                <span className="value-medium">
+                  <Tr en={ROLE_LABELS[p.role]} zh={ROLE_LABELS_ZH[p.role]} />
+                </span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-[0.95rem]">
@@ -131,7 +172,7 @@ export function AdminApprovalsPage() {
               <div className="flex items-center gap-3">
                 <span className="status-square status-hatched" />
                 <span className="text-foreground/80 text-[0.9rem] tracking-wide">
-                  Pending
+                  <Tr en="Pending" zh="待審批" />
                 </span>
               </div>
               <div className="flex justify-end gap-2">
@@ -141,7 +182,7 @@ export function AdminApprovalsPage() {
                   disabled={decide.isPending}
                   className="bg-foreground text-background rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide transition-opacity hover:opacity-90 disabled:opacity-50"
                 >
-                  Approve
+                  <Tr en="Approve" zh="批准" />
                 </button>
                 <button
                   type="button"
@@ -149,7 +190,7 @@ export function AdminApprovalsPage() {
                   disabled={decide.isPending}
                   className="border-foreground/25 hover:border-foreground rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide transition-colors disabled:opacity-50"
                 >
-                  Reject
+                  <Tr en="Reject" zh="拒絕" />
                 </button>
               </div>
             </div>

@@ -27,6 +27,7 @@ import {
   DEFAULT_OPT_HOURS_REQUIRED,
   getCurrentRenewalYear,
 } from '@/lib/constants/renewal'
+import { Tr, useTr } from '@/components/ui/tr'
 
 interface Props {
   profile: {
@@ -44,6 +45,7 @@ interface PreviousApplication {
 
 export function RenewalForm({ profile }: Props) {
   const currentYear = getCurrentRenewalYear()
+  const t = useTr()
 
   /**
    * Auto-fill from the most recent prior application per decisions-log
@@ -122,7 +124,7 @@ export function RenewalForm({ profile }: Props) {
       return data
     },
     onSuccess: (result) => {
-      toast.success('Renewal submitted')
+      toast.success(t('Renewal submitted', '續期申請已提交'))
       dispatchNotificationAsync({
         to_email: profile.email,
         to_profile_id: profile.id,
@@ -135,7 +137,7 @@ export function RenewalForm({ profile }: Props) {
       })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Submission failed')
+      toast.error(error.message || t('Submission failed', '提交失敗'))
     },
   })
 
@@ -148,7 +150,9 @@ export function RenewalForm({ profile }: Props) {
             name="application_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Membership type</FormLabel>
+                <FormLabel>
+                  <Tr en="Membership type" zh="會籍類別" />
+                </FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger className="border-foreground/15 h-12 rounded-xl">
@@ -160,7 +164,12 @@ export function RenewalForm({ profile }: Props) {
                     <SelectItem value="CPWPA">CPWPA</SelectItem>
                   </SelectContent>
                 </Select>
-                <FormDescription>Pre-filled from your last application.</FormDescription>
+                <FormDescription>
+                  <Tr
+                    en="Pre-filled from your last application."
+                    zh="已根據上次申請預填。"
+                  />
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -170,7 +179,12 @@ export function RenewalForm({ profile }: Props) {
             name="declared_opt_hours"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>OPT hours for {currentYear}</FormLabel>
+                <FormLabel>
+                  <Tr
+                    en={`OPT hours for ${currentYear}`}
+                    zh={`${currentYear} 年 OPT 時數`}
+                  />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -181,8 +195,10 @@ export function RenewalForm({ profile }: Props) {
                   />
                 </FormControl>
                 <FormDescription>
-                  Requirement: {DEFAULT_OPT_HOURS_REQUIRED} hours. Auto-fill once Phase 4
-                  is live; for now, declare manually.
+                  <Tr
+                    en={`Requirement: ${DEFAULT_OPT_HOURS_REQUIRED} hours. Auto-fill once Phase 4 is live; for now, declare manually.`}
+                    zh={`要求：${DEFAULT_OPT_HOURS_REQUIRED} 小時。第四階段上線後將自動填寫，現時請手動申報。`}
+                  />
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -194,12 +210,20 @@ export function RenewalForm({ profile }: Props) {
           name="employment_change_note"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Employment change note (optional)</FormLabel>
+              <FormLabel>
+                <Tr
+                  en="Employment change note (optional)"
+                  zh="就業狀況變更備註（選填）"
+                />
+              </FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
               <FormDescription>
-                If you changed firm or role since last renewal, explain here.
+                <Tr
+                  en="If you changed firm or role since last renewal, explain here."
+                  zh="如上次續期後有轉職或職銜變更，請在此說明。"
+                />
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -212,11 +236,11 @@ export function RenewalForm({ profile }: Props) {
             className="nexus-pill-primary disabled:opacity-50"
           >
             {mutation.isPending ? (
-              'Submitting...'
+              <Tr en="Submitting..." zh="提交中..." />
             ) : (
               <>
                 <i className="ph ph-paper-plane-tilt text-base" aria-hidden="true" />
-                Submit renewal
+                <Tr en="Submit renewal" zh="提交續期申請" />
               </>
             )}
           </button>

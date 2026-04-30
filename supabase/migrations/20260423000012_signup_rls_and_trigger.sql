@@ -1,3 +1,5 @@
+SET search_path = public, extensions;
+
 -- Fix sign-up RLS so members can create their own profile.
 --
 -- Bug found in QA: client-side `from('profiles').insert(...)` after

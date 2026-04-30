@@ -9,6 +9,7 @@ import { AuthLayout } from '@/routes/_auth/_layout'
 import { SignInPage } from '@/routes/_auth/sign-in'
 import { SignUpPage } from '@/routes/_auth/sign-up'
 import { VerifyPage } from '@/routes/_auth/verify'
+import { VerifyConfirmedPage } from '@/routes/_auth/verify-confirmed'
 import { ResetPasswordPage } from '@/routes/_auth/reset-password'
 import { CallbackPage } from '@/routes/_auth/callback'
 import { MemberLayout } from '@/routes/_member/_layout'
@@ -25,6 +26,7 @@ import { AdminDashboardPage } from '@/routes/_admin/dashboard'
 import { AdminApprovalsPage } from '@/routes/_admin/approvals'
 import { AdminProfileChangesPage } from '@/routes/_admin/profile-changes'
 import { AdminFirmApplicationsPage } from '@/routes/_admin/firm-applications'
+import { DemoGmailPage } from '@/routes/_demo/gmail'
 
 export const router = createBrowserRouter([
   {
@@ -46,6 +48,7 @@ export const router = createBrowserRouter([
           { path: 'sign-in', element: <SignInPage /> },
           { path: 'sign-up', element: <SignUpPage /> },
           { path: 'verify', element: <VerifyPage /> },
+          { path: 'verify/confirmed', element: <VerifyConfirmedPage /> },
           { path: 'reset-password', element: <ResetPasswordPage /> },
           { path: 'auth/callback', element: <CallbackPage /> },
           { path: 'register/individual', element: <RegisterIndividualPage /> },
@@ -69,6 +72,9 @@ export const router = createBrowserRouter([
           { path: 'employees', element: <FirmEmployeesPage /> },
         ],
       },
+      // Demo-only routes — no PWMA layout chrome (we want them to look
+      // like external apps, e.g. Gmail).
+      { path: 'demo/gmail', element: <DemoGmailPage /> },
       {
         path: 'admin',
         element: <AdminLayout />,

@@ -15,8 +15,11 @@ import {
   type ProfileChangeRequestInput,
   type CriticalField,
 } from '@/lib/validators/profile'
-import { ACCOUNT_STATUS_LABELS } from '@/lib/constants/account-statuses'
-import { ROLE_LABELS } from '@/lib/constants/roles'
+import {
+  ACCOUNT_STATUS_LABELS,
+  ACCOUNT_STATUS_LABELS_ZH,
+} from '@/lib/constants/account-statuses'
+import { ROLE_LABELS, ROLE_LABELS_ZH } from '@/lib/constants/roles'
 import { Input } from '@/components/ui/input'
 import {
   Dialog,
@@ -35,28 +38,40 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Tr, useTr } from '@/components/ui/tr'
 
-const CRITICAL_FIELD_LABELS: Record<CriticalField, string> = {
-  legal_name: 'Legal name',
-  date_of_birth: 'Date of birth',
-  hkid: 'HKID',
-  email: 'Email',
+const CRITICAL_FIELD_LABELS: Record<CriticalField, { en: string; zh: string }> = {
+  legal_name: { en: 'Legal name', zh: '法定姓名' },
+  date_of_birth: { en: 'Date of birth', zh: '出生日期' },
+  hkid: { en: 'HKID', zh: 'HKID' },
+  email: { en: 'Email', zh: '電郵' },
 }
 
 export function MemberProfilePage() {
   const { data: profile, isLoading } = useCurrentProfile()
+  const t = useTr()
 
   if (isLoading) {
-    return <div className="text-foreground/65 py-12 text-sm">Loading profile...</div>
+    return (
+      <div className="text-foreground/65 py-12 text-sm">
+        {t('Loading profile...', '載入資料中...')}
+      </div>
+    )
   }
   if (!profile) {
     return (
       <div className="max-w-md py-12">
-        <div className="label-small mb-3">Notice</div>
-        <h2 className="title-medium mb-3">Profile not yet provisioned</h2>
+        <div className="label-small mb-3">
+          <Tr en="Notice" zh="提示" />
+        </div>
+        <h2 className="title-medium mb-3">
+          <Tr en="Profile not yet provisioned" zh="個人資料尚未建立" />
+        </h2>
         <p className="text-foreground/65 text-sm">
-          Your registration may still be processing. Refresh the page in a moment, or
-          contact PWMA admin if this persists.
+          <Tr
+            en="Your registration may still be processing. Refresh the page in a moment, or contact PWMA admin if this persists."
+            zh="你的註冊可能仍在處理中，請稍後重新整理頁面。如問題持續，請聯絡 PWMA 管理員。"
+          />
         </p>
       </div>
     )
@@ -66,8 +81,12 @@ export function MemberProfilePage() {
     <>
       <header className="mb-16 flex items-end justify-between">
         <div>
-          <div className="label-small mb-4">Member</div>
-          <h1 className="title-huge">My profile</h1>
+          <div className="label-small mb-4">
+            <Tr en="Member" zh="會員" />
+          </div>
+          <h1 className="title-huge">
+            <Tr en="My profile" zh="我的資料" />
+          </h1>
         </div>
       </header>
 
@@ -75,15 +94,22 @@ export function MemberProfilePage() {
       <div className="mb-20 grid grid-cols-12 gap-16">
         <section className="col-span-7 flex gap-16">
           <div className="flex flex-col">
-            <span className="label-small mb-2">Account status</span>
+            <span className="label-small mb-2">
+              <Tr en="Account status" zh="帳戶狀態" />
+            </span>
             <span className="text-3xl font-light tracking-tight">
-              {ACCOUNT_STATUS_LABELS[profile.account_status]}
+              <Tr
+                en={ACCOUNT_STATUS_LABELS[profile.account_status]}
+                zh={ACCOUNT_STATUS_LABELS_ZH[profile.account_status]}
+              />
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="label-small mb-2">Role</span>
+            <span className="label-small mb-2">
+              <Tr en="Role" zh="角色" />
+            </span>
             <span className="text-foreground/65 text-3xl font-light tracking-tight">
-              {ROLE_LABELS[profile.role]}
+              <Tr en={ROLE_LABELS[profile.role]} zh={ROLE_LABELS_ZH[profile.role]} />
             </span>
           </div>
         </section>
@@ -93,11 +119,15 @@ export function MemberProfilePage() {
       <section className="mb-16">
         <div className="border-foreground mb-2 flex items-end justify-between border-b pb-4">
           <div>
-            <div className="label-small mb-1">Identity (protected)</div>
-            <h2 className="title-medium">Critical fields</h2>
+            <div className="label-small mb-1">
+              <Tr en="Identity (protected)" zh="身份（受保護）" />
+            </div>
+            <h2 className="title-medium">
+              <Tr en="Critical fields" zh="受保護資料" />
+            </h2>
           </div>
           <span className="text-foreground/65 text-xs">
-            Changes need PWMA admin approval
+            <Tr en="Changes need PWMA admin approval" zh="修改須經 PWMA 管理員批准" />
           </span>
         </div>
 
@@ -150,6 +180,7 @@ function CriticalFieldRow({
 }) {
   const [open, setOpen] = useState(false)
   const qc = useQueryClient()
+  const t = useTr()
 
   const form = useForm<ProfileChangeRequestInput>({
     resolver: zodResolver(profileChangeRequestSchema),
@@ -172,7 +203,12 @@ function CriticalFieldRow({
       if (error) throw error
     },
     onSuccess: (_data, submitted) => {
-      toast.success('Change request submitted. PWMA will review.')
+      toast.success(
+        t(
+          'Change request submitted. PWMA will review.',
+          '修改申請已提交，PWMA 將進行審核。',
+        ),
+      )
       dispatchNotificationAsync({
         to_email: profileEmail,
         to_profile_id: profileId,
@@ -188,16 +224,20 @@ function CriticalFieldRow({
       qc.invalidateQueries({ queryKey: ['profile'] })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Request failed')
+      toast.error(error.message || t('Request failed', '申請失敗'))
     },
   })
+
+  const fieldLabel = CRITICAL_FIELD_LABELS[field]
 
   return (
     <div
       className={`grid grid-cols-[200px_1fr_auto] items-center gap-6 py-5 ${last ? '' : 'border-foreground/10 border-b'}`}
     >
       <div>
-        <span className="label-small">{CRITICAL_FIELD_LABELS[field]}</span>
+        <span className="label-small">
+          <Tr en={fieldLabel.en} zh={fieldLabel.zh} />
+        </span>
       </div>
       <div>
         <span className="text-[1.05rem] font-medium tracking-tight">
@@ -210,14 +250,22 @@ function CriticalFieldRow({
             type="button"
             className="border-foreground/25 hover:border-foreground rounded-full border px-4 py-1.5 text-xs font-medium tracking-wide transition-colors"
           >
-            Request change
+            <Tr en="Request change" zh="申請修改" />
           </button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Request change: {CRITICAL_FIELD_LABELS[field]}</DialogTitle>
+            <DialogTitle>
+              <Tr
+                en={`Request change: ${fieldLabel.en}`}
+                zh={`申請修改：${fieldLabel.zh}`}
+              />
+            </DialogTitle>
             <DialogDescription>
-              PWMA will review your request. You can keep using the system while you wait.
+              <Tr
+                en="PWMA will review your request. You can keep using the system while you wait."
+                zh="PWMA 會審核你的申請，等待期間你可正常使用系統。"
+              />
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -230,7 +278,9 @@ function CriticalFieldRow({
                 name="new_value"
                 render={({ field: ff }) => (
                   <FormItem>
-                    <FormLabel className="label-small">New value</FormLabel>
+                    <FormLabel className="label-small">
+                      <Tr en="New value" zh="新內容" />
+                    </FormLabel>
                     <FormControl>
                       <Input className="h-11 rounded-xl" {...ff} />
                     </FormControl>
@@ -243,7 +293,9 @@ function CriticalFieldRow({
                 name="note"
                 render={({ field: ff }) => (
                   <FormItem>
-                    <FormLabel className="label-small">Reason (optional)</FormLabel>
+                    <FormLabel className="label-small">
+                      <Tr en="Reason (optional)" zh="原因（選填）" />
+                    </FormLabel>
                     <FormControl>
                       <Input className="h-11 rounded-xl" {...ff} />
                     </FormControl>
@@ -257,14 +309,18 @@ function CriticalFieldRow({
                   onClick={() => setOpen(false)}
                   className="nexus-pill-outline"
                 >
-                  Cancel
+                  <Tr en="Cancel" zh="取消" />
                 </button>
                 <button
                   type="submit"
                   disabled={mutation.isPending}
                   className="nexus-pill-primary disabled:opacity-50"
                 >
-                  {mutation.isPending ? 'Submitting...' : 'Submit request'}
+                  {mutation.isPending ? (
+                    <Tr en="Submitting..." zh="提交中..." />
+                  ) : (
+                    <Tr en="Submit request" zh="提交申請" />
+                  )}
                 </button>
               </DialogFooter>
             </form>
@@ -285,6 +341,7 @@ function NonCriticalFieldsForm({
   }
 }) {
   const qc = useQueryClient()
+  const t = useTr()
   const form = useForm<NonCriticalProfileInput>({
     resolver: zodResolver(nonCriticalProfileSchema),
     defaultValues: {
@@ -305,11 +362,11 @@ function NonCriticalFieldsForm({
       if (error) throw error
     },
     onSuccess: () => {
-      toast.success('Profile updated')
+      toast.success(t('Profile updated', '資料已更新'))
       qc.invalidateQueries({ queryKey: ['profile'] })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Update failed')
+      toast.error(error.message || t('Update failed', '更新失敗'))
     },
   })
 
@@ -317,10 +374,16 @@ function NonCriticalFieldsForm({
     <section>
       <div className="border-foreground mb-6 flex items-end justify-between border-b pb-4">
         <div>
-          <div className="label-small mb-1">Editable</div>
-          <h2 className="title-medium">Contact details</h2>
+          <div className="label-small mb-1">
+            <Tr en="Editable" zh="可自行修改" />
+          </div>
+          <h2 className="title-medium">
+            <Tr en="Contact details" zh="聯絡資料" />
+          </h2>
         </div>
-        <span className="text-foreground/65 text-xs">Saved instantly</span>
+        <span className="text-foreground/65 text-xs">
+          <Tr en="Saved instantly" zh="即時儲存" />
+        </span>
       </div>
 
       <Form {...form}>
@@ -333,7 +396,9 @@ function NonCriticalFieldsForm({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="label-small">Phone</FormLabel>
+                <FormLabel className="label-small">
+                  <Tr en="Phone" zh="電話" />
+                </FormLabel>
                 <FormControl>
                   <Input
                     className="border-foreground/15 h-12 rounded-xl text-base"
@@ -349,7 +414,9 @@ function NonCriticalFieldsForm({
             name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="label-small">Address</FormLabel>
+                <FormLabel className="label-small">
+                  <Tr en="Address" zh="地址" />
+                </FormLabel>
                 <FormControl>
                   <Input
                     className="border-foreground/15 h-12 rounded-xl text-base"
@@ -366,7 +433,11 @@ function NonCriticalFieldsForm({
             className="nexus-pill-primary disabled:opacity-50"
           >
             <i className="ph ph-floppy-disk text-base" aria-hidden="true" />
-            {mutation.isPending ? 'Saving...' : 'Save changes'}
+            {mutation.isPending ? (
+              <Tr en="Saving..." zh="儲存中..." />
+            ) : (
+              <Tr en="Save changes" zh="儲存" />
+            )}
           </button>
         </form>
       </Form>

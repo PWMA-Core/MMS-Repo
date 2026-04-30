@@ -365,10 +365,11 @@ const auth = {
   async signUp({
     email,
     password,
+    options,
   }: {
     email: string
     password: string
-    options?: unknown
+    options?: { data?: Record<string, unknown> }
   }) {
     if (db.auth_users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
       return {
@@ -384,6 +385,32 @@ const auth = {
       email_confirmed_at: nowIso(), // auto-confirm in mock mode
     }
     db.auth_users.push(user)
+
+    // Mirror migration 12's handle_new_auth_user trigger: when sign-up
+    // metadata includes hkid, auto-create a pending profile from
+    // raw_user_meta_data so the admin approvals queue is populated.
+    const meta = options?.data
+    if (meta && typeof meta === 'object' && 'hkid' in meta) {
+      const hkid = String(meta.hkid ?? '')
+      if (hkid) {
+        db.profiles.push({
+          id: uuid(),
+          auth_user_id: user.id,
+          email,
+          hkid,
+          legal_name: String(meta.legal_name ?? ''),
+          date_of_birth: (meta.date_of_birth as string) || null,
+          phone: (meta.phone as string) || null,
+          address: (meta.address as string) || null,
+          role: (meta.role as string) || 'individual_member',
+          account_status: 'pending_pwma_approval',
+          lifecycle_state: null,
+          created_at: nowIso(),
+          updated_at: nowIso(),
+        } as (typeof db.profiles)[number])
+      }
+    }
+
     persist()
     const authUser = buildUser(user)
     const session = buildSession(authUser)

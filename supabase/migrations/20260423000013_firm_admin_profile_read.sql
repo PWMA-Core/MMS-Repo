@@ -1,3 +1,5 @@
+SET search_path = public, extensions;
+
 -- Fix B-005: firm admin cannot read profiles of employees in their firm.
 --
 -- The firm-admin consolidated view (/firm/employees) joins firm_memberships

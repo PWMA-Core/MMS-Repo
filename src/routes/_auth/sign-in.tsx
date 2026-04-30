@@ -20,9 +20,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { ResendVerificationButton } from '@/components/auth/resend-verification-button'
+import { Tr, useTr } from '@/components/ui/tr'
 
 export function SignInPage() {
   const navigate = useNavigate()
+  const t = useTr()
   const [needsVerification, setNeedsVerification] = useState(false)
   const form = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
@@ -40,23 +42,27 @@ export function SignInPage() {
     },
     onSuccess: () => {
       setNeedsVerification(false)
-      toast.success('Signed in')
+      toast.success(t('Signed in', '登入成功'))
       navigate('/dashboard')
     },
     onError: (error: Error) => {
       const friendly = mapAuthError(error)
       setNeedsVerification(friendly.code === 'email_not_confirmed')
-      toast.error(friendly.message)
+      toast.error(t(friendly.message, friendly.messageZh))
     },
   })
 
   return (
     <div className="w-full max-w-md">
       <div className="mb-10">
-        <div className="label-small mb-3">Welcome back</div>
-        <h1 className="title-large">Sign in</h1>
+        <div className="label-small mb-3">
+          <Tr en="Welcome back" zh="歡迎回來" />
+        </div>
+        <h1 className="title-large">
+          <Tr en="Sign in" zh="登入" />
+        </h1>
         <p className="text-foreground/65 mt-3 text-sm">
-          Access your PWMA member account.
+          <Tr en="Access your PWMA member account." zh="登入你嘅 PWMA 會員帳戶。" />
         </p>
       </div>
 
@@ -70,7 +76,9 @@ export function SignInPage() {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="label-small">Email</FormLabel>
+                <FormLabel className="label-small">
+                  <Tr en="Email" zh="電郵" />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="email"
@@ -88,7 +96,9 @@ export function SignInPage() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="label-small">Password</FormLabel>
+                <FormLabel className="label-small">
+                  <Tr en="Password" zh="密碼" />
+                </FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -107,11 +117,11 @@ export function SignInPage() {
             disabled={mutation.isPending}
           >
             {mutation.isPending ? (
-              'Signing in...'
+              <Tr en="Signing in..." zh="登入中..." />
             ) : (
               <>
                 <i className="ph ph-sign-in text-base" aria-hidden="true" />
-                Sign in
+                <Tr en="Sign in" zh="登入" />
               </>
             )}
           </button>
@@ -123,13 +133,13 @@ export function SignInPage() {
               to="/reset-password"
               className="text-foreground/65 hover:text-foreground underline underline-offset-4"
             >
-              Forgot password?
+              <Tr en="Forgot password?" zh="忘記密碼？" />
             </Link>
             <Link
               to="/sign-up"
               className="text-foreground/65 hover:text-foreground underline underline-offset-4"
             >
-              Create account
+              <Tr en="Create account" zh="建立帳戶" />
             </Link>
           </div>
         </form>
